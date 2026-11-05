@@ -18,6 +18,7 @@ from mathics.core.interrupt import (
     BreakInterrupt,
     ContinueInterrupt,
     ReturnInterrupt,
+    TimeConstrainedTimeout,
     TimeoutInterrupt,
     WLThrowInterrupt,
 )
@@ -149,6 +150,7 @@ class Evaluation:
         self.out: List[_Out] = []
         self.output = output if output else Output()
         self.predetermined_out = None
+        self.compound_out_depth = 1
         self.quiet_all = False
         self.recursion_depth = 0
 
@@ -234,6 +236,12 @@ class Evaluation:
         self.deadline = None if timeout is None else self.start_time + timeout
         self.exc_result = self.SymbolNull
         self.last_eval = None
+        # A value left by an evaluation that was interrupted must not
+        # become the Out[] of this one.
+        self.predetermined_out = None
+        # The recursion depth at which a CompoundExpression sets
+        # predetermined_out (see CompoundExpression.eval).
+        self.compound_out_depth = 1
         if format is None:
             format = self.format
 
@@ -335,6 +343,11 @@ class Evaluation:
                 self.exc_result = SymbolAborted
             except AbortInterrupt:  # , error:
                 self.exc_result = SymbolAborted
+            except TimeConstrainedTimeout:
+                # A TimeConstrained turns its own timeout into its failure
+                # expression, so none should get here. Should one slip
+                # through, the input is aborted rather than the session.
+                self.exc_result = SymbolAborted
             except RecursionError:
                 # Python ran out of stack before $RecursionLimit was
                 # reached: report it the same way.
@@ -342,7 +355,7 @@ class Evaluation:
                     "$RecursionLimit",
                     "reclim",
                     self.definitions.get_config_value(
-                        "$RecursionLimit", MAX_RECURSION_DEPTH
+                        "System`$RecursionLimit", MAX_RECURSION_DEPTH
                     )
                     or MAX_RECURSION_DEPTH,
                 )
@@ -598,7 +611,7 @@ class Evaluation:
     def inc_recursion_depth(self) -> None:
         self.check_stopped()
         limit = self.definitions.get_config_value(
-            "$RecursionLimit", MAX_RECURSION_DEPTH
+            "System`$RecursionLimit", MAX_RECURSION_DEPTH
         )
         if limit is None:
             # $RecursionLimit is Infinity, as in Block[{$RecursionLimit = Infinity}, ...],
