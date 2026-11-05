@@ -282,6 +282,11 @@ class Definitions:
         self.definitions_cache: Dict[str, Definition] = {}
         self.lookup_cache: Dict[str, str] = {}
         self.now = 0  # increments whenever something is updated
+        # Change tracking, see begin_change_tracking(): the value of `now`
+        # when each open tracking began, and the definitions changed since
+        # the outermost one began.
+        self._change_marks: List[int] = []
+        self._change_log: List[Definition] = []
         self.outputforms = list(OUTPUT_FORMS)
         self.printforms = list(PRINT_FORMS)
         self.proxy: Dict[str, Set[str]] = defaultdict(set)
@@ -836,8 +841,30 @@ class Definitions:
 
     def mark_changed(self, definition: Definition) -> None:
         """Mark a definition change"""
+        marks = self._change_marks
+        # While a change tracking (see begin_change_tracking) is open, log a
+        # definition the first time it changes after the innermost one began.
+        if marks and definition.changed <= marks[-1]:
+            self._change_log.append(definition)
         self.now += 1
         definition.changed = self.now
+
+    def begin_change_tracking(self) -> int:
+        """Start recording which definitions change, until the matching
+        end_change_tracking(). Trackings nest; the value returned is the
+        token to pass to end_change_tracking()."""
+        self._change_marks.append(self.now)
+        return len(self._change_log)
+
+    def end_change_tracking(self, token: int) -> List[Definition]:
+        """Close the tracking opened by begin_change_tracking() that returned
+        `token`, and return the definitions changed since it began (possibly
+        with repetitions, and possibly no longer in ``self.user``)."""
+        self._change_marks.pop()
+        changed = self._change_log[token:]
+        if not self._change_marks:
+            self._change_log.clear()
+        return changed
 
     def reset_user_definition(self, name: str) -> None:
         """Remove the user definition associated with the Symbol `name`"""

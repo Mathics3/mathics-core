@@ -11,10 +11,15 @@ from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, attribute_string_to
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.evaluation import Evaluation
+from mathics.core.interrupt import EvaluationInterrupt
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolList, SymbolSet
-from mathics.eval.scoping import eval_contexts, eval_contexts_with_string
+from mathics.eval.scoping import (
+    eval_contexts,
+    eval_contexts_with_string,
+    release_module_variables,
+)
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
@@ -517,19 +522,48 @@ class Module(Builtin):
         "Module[vars_, expr_]"
 
         scoping_vars = get_scoping_vars(vars, "Module", evaluation)
+        definitions = evaluation.definitions
         replace = {}
         number = Symbol("$ModuleNumber").evaluate(evaluation).int_value
         if number is None:
             number = 1
-        evaluation.definitions.set_ownvalue("$ModuleNumber", Integer(number + 1))
+        definitions.set_ownvalue("$ModuleNumber", Integer(number + 1))
         for name, new_def in scoping_vars:
             new_name = "%s$%d" % (name, number)
             if new_def is not None:
-                evaluation.definitions.set_ownvalue(new_name, new_def.copy())
+                definitions.set_ownvalue(new_name, new_def.copy())
             replace[name] = Symbol(new_name)
         new_expr = expr.replace_vars(replace)
-        result = new_expr.evaluate(evaluation)
-        return result
+
+        # The local variables that nothing references once the Module is
+        # done (or aborted) are removed, so that their values do not stay
+        # in the session.
+        token = definitions.begin_change_tracking()
+        results = []
+        try:
+            result = new_expr.evaluate(evaluation)
+            results.append(result)
+            return result
+        except EvaluationInterrupt as exc:
+            # Return, Throw, ... carry a value out of the Module.
+            results.extend(
+                value
+                for value in (
+                    getattr(exc, "expr", None),
+                    getattr(exc, "value", None),
+                    getattr(exc, "tag", None),
+                )
+                if value is not None
+            )
+            raise
+        finally:
+            changed = definitions.end_change_tracking(token)
+            release_module_variables(
+                definitions,
+                [symbol.name for symbol in replace.values()],
+                changed,
+                results,
+            )
 
 
 class ModuleNumber_(Predefined):

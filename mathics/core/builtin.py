@@ -48,6 +48,7 @@ from mathics.core.atoms import (
     MachineReal,
     Number,
     PrecisionReal,
+    Rational,
     String,
 )
 from mathics.core.atoms.numerics import extended_float
@@ -1315,13 +1316,29 @@ class IterationFunction(Builtin, ABC):
                 evaluation.message(self.get_name(), "iterb")
             return
 
+        # With an integer start and step and an exact number of steps, the
+        # step test and the value of the variable are computed in Python:
+        # evaluating LessEqual, Times and Plus on every step costs more than
+        # a small loop body.
+        exact_steps = (
+            isinstance(imin, Integer)
+            and isinstance(di, Integer)
+            and isinstance(normalised_range, (Integer, Rational))
+        )
+        if exact_steps:
+            py_imin, py_di = imin.value, di.value
+            py_range = normalised_range.value
+
         result = []
         last_head = None
         is_uniform = True
         while True:
-            cont = Expression(
-                SymbolLessEqual, Integer(index), normalised_range
-            ).evaluate(evaluation)
+            if exact_steps:
+                cont = SymbolTrue if index <= py_range else SymbolFalse
+            else:
+                cont = Expression(
+                    SymbolLessEqual, Integer(index), normalised_range
+                ).evaluate(evaluation)
             if cont is SymbolFalse:
                 break
             if cont is not SymbolTrue:
@@ -1335,13 +1352,17 @@ class IterationFunction(Builtin, ABC):
                     expr.evaluate,
                     {
                         i.name: (
-                            Expression(
-                                SymbolPlus,
-                                imin,
-                                Expression(SymbolTimes, di, Integer(index)),
-                            ).evaluate(evaluation)
-                            if index > 0
-                            else imin
+                            Integer(py_imin + py_di * index)
+                            if exact_steps
+                            else (
+                                Expression(
+                                    SymbolPlus,
+                                    imin,
+                                    Expression(SymbolTimes, di, Integer(index)),
+                                ).evaluate(evaluation)
+                                if index > 0
+                                else imin
+                            )
                         )
                     },
                     evaluation,

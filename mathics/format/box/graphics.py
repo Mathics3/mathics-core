@@ -809,6 +809,8 @@ def prepare_elements(self, content, options, neg_y=False, max_width=None):
         self.tooltip_text = elements.tooltip_text
 
     axes = []  # to be filled further down
+    # The extent found in the first pass, in the coordinates of the graphic.
+    first_pass_extent = []
 
     def calc_dimensions(final_pass=True):
         """
@@ -825,6 +827,18 @@ def prepare_elements(self, content, options, neg_y=False, max_width=None):
         # always need to compute extent if size aspect is automatic
         if "System`Automatic" in plot_range or size_aspect is None:
             xmin, xmax, ymin, ymax = elements.extent()
+            if final_pass and first_pass_extent:
+                # The extent in pixels covers at least the range found in
+                # the first pass: insets, whose size is in pixels, count
+                # there with their anchor points only, and a graphic made
+                # of text only must not shrink to the size of its text.
+                fxmin, fxmax, fymin, fymax = first_pass_extent
+                (x1, y1), (x2, y2) = (
+                    elements.translate((fxmin, fymin)),
+                    elements.translate((fxmax, fymax)),
+                )
+                xmin, xmax = min(xmin, x1, x2), max(xmax, x1, x2)
+                ymin, ymax = min(ymin, y1, y2), max(ymax, y1, y2)
         else:
             xmin = xmax = ymin = ymax = None
 
@@ -917,6 +931,13 @@ def prepare_elements(self, content, options, neg_y=False, max_width=None):
         return xmin, xmax, ymin, ymax, w, h, width, height
 
     xmin, xmax, ymin, ymax, w, h, width, height = calc_dimensions(final_pass=False)
+    # Only a graphic with insets of its own (axes are added later) needs
+    # the range of the first pass kept: the others, whose elements cover
+    # that range, keep their dimensions exactly.
+    if "System`Automatic" in plot_range and any(
+        getattr(element, "pixel_sized", False) for element in elements.elements
+    ):
+        first_pass_extent.extend((xmin, xmax, ymin, ymax))
 
     elements.set_size(xmin, ymin, w, h, width, height)
 

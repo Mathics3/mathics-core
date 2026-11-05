@@ -18,7 +18,6 @@ from mathics.core.attributes import (
 from mathics.core.builtin import MPMathFunction
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.evaluation import Evaluation
-from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolMachinePrecision
 from mathics.eval.specialfns.hypergeom import (
     eval_Hypergeometric1F1,
@@ -27,7 +26,6 @@ from mathics.eval.specialfns.hypergeom import (
     eval_MeijerG,
     eval_N_HypergeometricPQF,
 )
-from mathics.eval.stackframe import get_eval_Expression
 
 
 class Hypergeometric1F1(MPMathFunction):
@@ -199,16 +197,12 @@ class HypergeometricPFQ(MPMathFunction):
     sympy_name = "hyper"
 
     def eval(self, a, b, z, evaluation: Evaluation):
-        "HypergeometricPFQ[a_, b_, z_]"
-
-        # FIXME: a lot more checking could be done here.
-        if not (isinstance(a, ListExpression)):
-            evaluation.message("HypergeometricPFQ", "hdiv", get_eval_Expression())
+        "HypergeometricPFQ[a_List, b_List, z_]"
 
         return eval_HypergeometricPQF(a, b, z)
 
     def eval_N(self, a, b, z, prec, evaluation: Evaluation):
-        "N[HypergeometricPFQ[a_, b_, z_], prec_]"
+        "N[HypergeometricPFQ[a_List, b_List, z_], prec_]"
         # FIXME: prec is not used. It should be though.
         return eval_N_HypergeometricPQF(a, b, z)
 

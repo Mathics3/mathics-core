@@ -353,15 +353,15 @@ Graphics[{Text[a^b,{0,0}]}]:
 
       usepackage("amsmath");
 
-      size(4.9cm, 5.8333cm);
+      size(5.8333cm, 5.8333cm);
 
 
       // InsetBox
 
-      label("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+      label("$a^b$", (175.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
 
 
-      clip(box((136.5,162.5), (157.5,187.5)));
+      clip(box((0,0), (350,350)));
 
 
       \end{asy}
@@ -373,15 +373,15 @@ Graphics[{Text[a^b,{0,0}]}]:
 
       usepackage("amsmath");
 
-      size(4.9cm, 5.8333cm);
+      size(5.8333cm, 5.8333cm);
 
 
       // InsetBox
 
-      label("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+      label("$a^b$", (175.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
 
 
-      clip(box((136.5,162.5), (157.5,187.5)));
+      clip(box((0,0), (350,350)));
 
 
       \end{asy}
@@ -649,17 +649,17 @@ TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]:
   msg: A table of graphics - Fragile!
   latex:
     System`StandardForm: "\\begin{array}{c} \n\\begin{asy}\nusepackage(\"amsmath\"\
-      );\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel(\"$a^b$\", (73.5,87.5), align=SW,\
-      \ rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\
-      \\\\ \n\\begin{asy}\nusepackage(\"amsmath\");\nsize(2.45cm, 2.9167cm);\n\n//\
-      \ InsetBox\nlabel(\"$a^b$\", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));\n\
-      \nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\end{array}"
+      );\nsize(2.9167cm, 2.9167cm);\n\n// InsetBox\nlabel(\"$a^b$\", (87.5,87.5), align=SW,\
+      \ rgb(0, 0, 0)+fontsize(3));\n\nclip(box((0,0), (175,175)));\n\n\\end{asy}\n\
+      \\\\ \n\\begin{asy}\nusepackage(\"amsmath\");\nsize(2.9167cm, 2.9167cm);\n\n//\
+      \ InsetBox\nlabel(\"$a^b$\", (87.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));\n\
+      \nclip(box((0,0), (175,175)));\n\n\\end{asy}\n\\end{array}"
     System`TraditionalForm: "\\begin{array}{c} \n\\begin{asy}\nusepackage(\"amsmath\"\
-      );\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel(\"$a^b$\", (73.5,87.5), align=SW,\
-      \ rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\
-      \\\\ \n\\begin{asy}\nusepackage(\"amsmath\");\nsize(2.45cm, 2.9167cm);\n\n//\
-      \ InsetBox\nlabel(\"$a^b$\", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));\n\
-      \nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\end{array}"
+      );\nsize(2.9167cm, 2.9167cm);\n\n// InsetBox\nlabel(\"$a^b$\", (87.5,87.5), align=SW,\
+      \ rgb(0, 0, 0)+fontsize(3));\n\nclip(box((0,0), (175,175)));\n\n\\end{asy}\n\
+      \\\\ \n\\begin{asy}\nusepackage(\"amsmath\");\nsize(2.9167cm, 2.9167cm);\n\n//\
+      \ InsetBox\nlabel(\"$a^b$\", (87.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));\n\
+      \nclip(box((0,0), (175,175)));\n\n\\end{asy}\n\\end{array}"
   text:
     System`InputForm: TableForm[{Graphics[{Text[a^b, {0, 0}]}], Graphics[{Text[a^b, {0, 0}]}]}]
     System`OutputForm: '-Graphics-

@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 import sympy
 
-from mathics.core.atoms import Complex, Integer, Integer0, Integer1, IntegerM1
+from mathics.core.atoms import Complex, Integer, Integer0, Integer1, IntegerM1, Rational
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.rules import BasePattern
@@ -15,6 +15,13 @@ from mathics.core.systemsymbols import (
 
 
 def do_cmp(x1, x2) -> Optional[int]:
+    # Exact numbers compare as Python numbers: going through SymPy (a
+    # subtraction and its assumptions) costs more than the whole step of a
+    # loop that tests its counter.
+    if isinstance(x1, (Integer, Rational)) and isinstance(x2, (Integer, Rational)):
+        v1, v2 = x1.value, x2.value
+        return 0 if v1 == v2 else (-1 if v1 < v2 else 1)
+
     # don't attempt to compare complex numbers
     for x in (x1, x2):
         # TODO: Send message General::nord
