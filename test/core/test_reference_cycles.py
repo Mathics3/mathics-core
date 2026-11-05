@@ -44,3 +44,24 @@ def unreachable_after(expr: str) -> int:
 )
 def test_no_reference_cycles(expr):
     assert unreachable_after(expr) == 0
+
+
+def test_gc_threshold():
+    """import_and_load_builtins raises the threshold of the youngest
+    generation, and set_gc_threshold never lowers it."""
+    from mathics.core.load_builtin import GC_THRESHOLD_GENERATION0, set_gc_threshold
+
+    assert gc.get_threshold()[0] >= GC_THRESHOLD_GENERATION0
+    saved = gc.get_threshold()
+    try:
+        gc.set_threshold(10 * GC_THRESHOLD_GENERATION0, 10, 10)
+        set_gc_threshold()
+        assert gc.get_threshold()[0] == 10 * GC_THRESHOLD_GENERATION0
+        gc.set_threshold(0, 10, 10)
+        set_gc_threshold()
+        assert gc.get_threshold()[0] == 0
+        gc.set_threshold(700, 10, 10)
+        set_gc_threshold()
+        assert gc.get_threshold()[0] == GC_THRESHOLD_GENERATION0
+    finally:
+        gc.set_threshold(*saved)
