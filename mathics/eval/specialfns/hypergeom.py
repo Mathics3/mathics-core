@@ -181,6 +181,9 @@ def run_sympy_hyper_and_expand(a, b, z):
     """Ruy SymPy's hyper function and expand the result."""
     sympy_result = tracing.run_sympy(sympy.hyper, a, b, z)
     result = sympy.hyperexpand(sympy_result)
+    # An unchanged result can rebuild complex factors and restart evaluation.
+    if result == sympy.hyper(a, b, z, evaluate=False):
+        return None
     return from_sympy(result)
 
 
