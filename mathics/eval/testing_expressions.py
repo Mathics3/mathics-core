@@ -1,20 +1,59 @@
-from typing import Optional, Union
+from collections.abc import Callable
+from typing import Final, Literal
 
 import sympy
 
-from mathics.core.atoms import Complex, Integer, Integer0, Integer1, IntegerM1, Rational
+from mathics.core.atoms import (
+    Complex,
+    Integer,
+    Integer0,
+    Integer1,
+    IntegerM1,
+    Number,
+    Rational,
+    String,
+)
+from mathics.core.convert.expression import to_numeric_args
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.number import is_inexact
 from mathics.core.rules import BasePattern
-from mathics.core.symbols import BooleanType, SymbolFalse, SymbolTimes, SymbolTrue
+from mathics.core.symbols import (
+    BooleanType,
+    Symbol,
+    SymbolFalse,
+    SymbolTimes,
+    SymbolTrue,
+)
 from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
+    SymbolEqual,
+    SymbolGreater,
+    SymbolGreaterEqual,
+    SymbolLess,
+    SymbolLessEqual,
     SymbolList,
+    SymbolMaxExtraPrecision,
     SymbolSparseArray,
+    SymbolUnequal,
 )
+from mathics.eval.nevaluator import eval_N
+
+# An annotation type for any number of Literal argument counts -1, 0, 1.
+# In reality we'll have one or two of these, but we use elipsis anyway
+ComparisonTuple = tuple[Literal[-1, 0, 1], ...]
+
+OPERATOR_TO_ARGUMENT_MAP: Final[dict[Symbol, ComparisonTuple]] = {
+    SymbolLess: (-1,),
+    SymbolLessEqual: (-1, 0),
+    SymbolEqual: (0,),
+    SymbolGreaterEqual: (0, 1),
+    SymbolGreater: (1,),
+    SymbolUnequal: (-1, 1),
+}
 
 
-def do_cmp(x1, x2) -> Optional[int]:
+def do_cmp(x1, x2) -> int | None:
     # Exact numbers compare as Python numbers: going through SymPy (a
     # subtraction and its assumptions) costs more than the whole step of a
     # loop that tests its counter.
@@ -62,7 +101,7 @@ def do_cmp(x1, x2) -> Optional[int]:
     return None
 
 
-def do_cplx_equal(x, y) -> Optional[int]:
+def do_cplx_equal(x, y) -> bool | None:
     if isinstance(y, Complex):
         x, y = y, x
     if isinstance(x, Complex):
@@ -75,10 +114,7 @@ def do_cplx_equal(x, y) -> Optional[int]:
             c = do_cmp(x.imag, y.imag)
             if c is None:
                 return
-            if c != 0:
-                return False
-            else:
-                return True
+            return c == 0
         else:
             c = do_cmp(x.imag, Integer0)
             if c is None:
@@ -88,17 +124,14 @@ def do_cplx_equal(x, y) -> Optional[int]:
             c = do_cmp(x.real, y.real)
             if c is None:
                 return
-            if c != 0:
-                return False
-            else:
-                return True
+            return c == 0
     c = do_cmp(x, y)
     if c is None:
         return None
     return c == 0
 
 
-def expr_max(elements) -> Union[Expression, int]:
+def expr_max(elements) -> Expression | int:
     result = Expression(SymbolDirectedInfinity, IntegerM1)
     for element in elements:
         c = do_cmp(element, result)
@@ -107,13 +140,19 @@ def expr_max(elements) -> Union[Expression, int]:
     return result
 
 
-def expr_min(elements) -> Union[Expression, int]:
+def expr_min(elements) -> Expression | int:
     result = Expression(SymbolDirectedInfinity, Integer1)
     for element in elements:
         c = do_cmp(element, result)
         if c is not None and c < 0:
             result = element
     return result
+
+
+def get_pairs(args):
+    for i in range(len(args)):
+        for j in range(i):
+            yield (args[i], args[j])
 
 
 def is_number(sympy_value) -> bool:
@@ -180,3 +219,73 @@ def eval_SparseArrayQ(expr, pattern, test, evaluation: Evaluation) -> BooleanTyp
             return SymbolFalse
 
     return SymbolTrue
+
+
+def eval_comparison_operator(
+    symbol: Symbol, elements, evaluation: Evaluation
+) -> BooleanType | None:
+    elements_sequence = elements.get_sequence()
+    if len(elements_sequence) <= 1:
+        return SymbolTrue
+    elements = numerify_args(elements, evaluation)
+    wanted = OPERATOR_TO_ARGUMENT_MAP[symbol]
+    if isinstance(elements[-1], String):
+        return None
+    for i in range(len(elements) - 1):
+        x = elements[i]
+        if isinstance(x, String):
+            return None
+        y = elements[i + 1]
+        c = do_cmp(x, y)
+        if c is None:
+            return
+        elif c not in wanted:
+            return SymbolFalse
+        assert c in wanted
+    return SymbolTrue
+
+
+def eval_equality_operator(
+    eval_other: Callable, operator_sense: Callable, elements, evaluation: Evaluation
+) -> BooleanType | None:
+    elements_sequence = elements.get_sequence()
+    n = len(elements_sequence)
+    if n <= 1:
+        return SymbolTrue
+    # The test of ExactNumberQ, made directly: building and evaluating
+    # ExactNumberQ[arg] cost more than the comparison itself.
+    if not all(
+        isinstance(arg, Number) and not arg.is_inexact for arg in elements_sequence
+    ):
+        return eval_other(elements, evaluation)
+    args = numerify_args(elements, evaluation)
+    for x, y in get_pairs(args):
+        c = do_cplx_equal(x, y)
+        if c is None:
+            return
+        if not operator_sense(c):
+            return SymbolFalse
+    return SymbolTrue
+
+
+def numerify_args(elements, evaluation: Evaluation) -> list | tuple:
+    """Processes elements into a tuple or a list, so that the
+    caller can compare the returned tuple or list.
+    """
+    element_sequence = elements.get_sequence()
+    all_numeric = all(is_inexact(element) for element in element_sequence)
+
+    if all_numeric and any(not isinstance(item, Number) for item in element_sequence):
+        # All elements are numeric but they are not all numbers.
+        # Here, apply N[] (or eval_N()).
+        items = element_sequence
+        n_items = []
+        for item in items:
+            if not isinstance(item, Number):
+                item = eval_N(item, evaluation, SymbolMaxExtraPrecision)
+            n_items.append(item)
+        return n_items
+
+    # An element is not numeric or is not in the Number class.
+    # Here, we rely on to_numeric_args to do the right thing.
+    return to_numeric_args(elements, evaluation)
