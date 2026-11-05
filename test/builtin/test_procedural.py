@@ -133,7 +133,30 @@ def test_history_compound_expression():
     check_evaluation_as_in_cli("ToString[%]", "y")
     check_evaluation_as_in_cli("CompoundExpression[]")
     check_evaluation_as_in_cli("ToString[%]", "Null")
-    check_evaluation_as_in_cli("Clear[x];Clear[y];")
+    # The rest was checked against WMA 15.
+    check_evaluation_as_in_cli("CompoundExpression[x, CompoundExpression[y, Null]]")
+    check_evaluation_as_in_cli("ToString[%]", "y")
+    check_evaluation_as_in_cli("CompoundExpression[x, Null, y]", "y")
+    check_evaluation_as_in_cli("ToString[%]", "y")
+    # A CompoundExpression inside another expression does not set Out[].
+    check_evaluation_as_in_cli("{(x; Null)}", "{Null}")
+    check_evaluation_as_in_cli("ToString[%]", "{Null}")
+    check_evaluation_as_in_cli("Timing[x; ][[2]]")
+    check_evaluation_as_in_cli("ToString[%]", "Null")
+    # ... unless the input itself evaluates to it.
+    check_evaluation_as_in_cli("f[] := (x; Null)")
+    check_evaluation_as_in_cli("f[]")
+    check_evaluation_as_in_cli("ToString[%]", "x")
+    check_evaluation_as_in_cli("CompoundExpression[f[], Null]")
+    check_evaluation_as_in_cli("ToString[%]", "x")
+    check_evaluation_as_in_cli("g[] := {(y; Null)}")
+    check_evaluation_as_in_cli("CompoundExpression[g[], Null]")
+    check_evaluation_as_in_cli("ToString[%]", "{Null}")
+    # A timed-out evaluation does not leave its partial value to the next Out[].
+    session.evaluate_as_in_cli("Do[(x; Null), {10^8}]", timeout=0.2)
+    check_evaluation_as_in_cli("Null")
+    check_evaluation_as_in_cli("ToString[%]", "Null")
+    check_evaluation_as_in_cli("Clear[f, g, x, y];")
     return
 
     def eval_expr(expr_str):

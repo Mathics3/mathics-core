@@ -228,16 +228,33 @@ class CompoundExpression(InfixOperator):
         items = expr.get_sequence()
         result = SymbolNull
 
-        for expr in items:
-            prev_result = result
-            result = expr.evaluate(evaluation)
+        # `expr1; expr2;` returns `Null` but assigns `expr2` to `Out[n]`:
+        # when the input evaluates to a CompoundExpression whose value is
+        # `Null`, `Out[n]` gets the last value that is not `Null`, and
+        # that includes the values of CompoundExpressions among its
+        # elements, in turn. `CompoundExpression[x, Null, Null]` assigns
+        # `x`, and so does `CompoundExpression[CompoundExpression[y, x,
+        # Null], Null]`. A CompoundExpression deeper inside does not count:
+        # `{(1; Null)}` assigns `{Null}`, as in WMA.
+        depth = evaluation.recursion_depth
+        if depth != evaluation.compound_out_depth:
+            for expr in items:
+                result = expr.evaluate(evaluation)
+            return result
 
-            # `expr1; expr2;` returns `Null` but assigns `expr2` to
-            # `Out[n]`.  even stranger `CompoundExpression[expr1,
-            # Null, Null]` assigns `expr1` to `Out[n]`.
-            if result is SymbolNull and prev_result is not SymbolNull:
-                evaluation.predetermined_out = prev_result
-
+        evaluation.compound_out_depth = depth + 1
+        last = None
+        try:
+            for expr in items:
+                evaluation.predetermined_out = None
+                result = expr.evaluate(evaluation)
+                if result is not SymbolNull:
+                    last = result
+                elif evaluation.predetermined_out is not None:
+                    last = evaluation.predetermined_out
+        finally:
+            evaluation.compound_out_depth = depth
+        evaluation.predetermined_out = last if result is SymbolNull else None
         return result
 
 
