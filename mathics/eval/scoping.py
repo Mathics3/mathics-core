@@ -8,6 +8,7 @@ from mathics.core.atoms import String
 from mathics.core.definitions import Definitions
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolList, SymbolSet
@@ -41,6 +42,109 @@ def dynamic_scoping(func, vars, evaluation: Evaluation):
         for name, definition in original_definitions.items():
             evaluation.definitions.add_user_definition(name, definition)
     return result
+
+
+def _definition_roots(definition):
+    """The expressions a definition holds: both sides of its rules, and its
+    option values."""
+    lists = [
+        definition.ownvalues,
+        definition.downvalues,
+        definition.subvalues,
+        definition.upvalues,
+        definition.nvalues,
+        definition.defaultvalues,
+        definition.messages,
+        *definition.formatvalues.values(),
+    ]
+    for rules in lists:
+        for rule in rules:
+            yield rule.pattern.expr
+            replace = getattr(rule, "replace", None)
+            if replace is not None:
+                yield replace
+    yield from definition.options.values()
+
+
+def _find_names(roots, names: set, found: set, seen: set) -> None:
+    """Add to `found` the names in `names` of the symbols that occur in
+    `roots`. `seen` holds the ids of the expressions already walked."""
+    from mathics.core.atoms.associations import Association
+    from mathics.eval.rules import Dispatch
+
+    stack = list(roots)
+    while stack:
+        element = stack.pop()
+        if isinstance(element, Symbol):
+            name = element.name
+            if name in names:
+                found.add(name)
+                if len(found) == len(names):
+                    return
+            continue
+        if id(element) in seen:
+            continue
+        seen.add(id(element))
+        if isinstance(element, Expression):
+            stack.append(element.head)
+            stack.extend(element.elements)
+        elif isinstance(element, Association):
+            stack.append(element.expr)
+        elif isinstance(element, Dispatch):
+            stack.append(element.src)
+        elif isinstance(element, (list, tuple)):
+            stack.extend(element)
+
+
+def release_module_variables(
+    definitions: Definitions, names: list, changed: list, results: list
+) -> None:
+    """Remove the definitions of the local variables `names` of a Module
+    that nothing references any more, as WMA does with its temporary symbols.
+
+    A variable is still referenced when it occurs in one of `results`
+    (what the Module returns, or what an interrupt carries out of it), or
+    in a definition that changed while the Module was evaluated (the
+    definitions `changed`), or in a kept variable. Nothing that existed
+    before the Module can hold one of its variables otherwise.
+
+    Without this, every value given to a Module variable stays in the
+    session for good, including the partial values of an aborted Module.
+    """
+    user = definitions.user
+    candidates = {
+        name: definition for name in names if (definition := user.get(name)) is not None
+    }
+    if not candidates:
+        return
+    pending = set(candidates)
+    found: set = set()
+    seen: set = set()
+    _find_names(results, pending, found, seen)
+
+    walked = set()
+    for definition in changed:
+        if not pending - found:
+            break
+        name = definition.name
+        if name in candidates or id(definition) in walked:
+            continue
+        walked.add(id(definition))
+        if user.get(name) is not definition:
+            continue
+        _find_names(_definition_roots(definition), pending, found, seen)
+
+    # A kept variable keeps the variables its own definition refers to.
+    work = list(found)
+    while work and pending - found:
+        name = work.pop()
+        before = set(found)
+        _find_names(_definition_roots(candidates[name]), pending, found, seen)
+        work.extend(found - before)
+
+    for name in pending - found:
+        del user[name]
+        definitions.clear_cache(name)
 
 
 def eval_contexts(definitions: Definitions) -> ListExpression:
