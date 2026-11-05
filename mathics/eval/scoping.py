@@ -3,7 +3,8 @@ Evaluation module corresponding to builtin functions in mathics.builtins.scoping
 """
 
 import re
-from typing import Optional
+from enum import Enum, auto
+from typing import Dict, Optional
 
 from mathics.core.atoms import String
 from mathics.core.definitions import Definitions
@@ -67,29 +68,42 @@ def _definition_roots(definition):
     yield from definition.options.values()
 
 
-# How _find_names walks an element, by its class: 0 skip (an atom without
-# symbols), 1 Symbol, 2 Expression, 3 Association, 4 Dispatch, 5 list or
-# tuple. Looking the class up here avoids isinstance() on the abstract base
-# classes of the elements, which costs more than the rest of the walk.
-_walk_kinds: dict = {list: 5, tuple: 5}
+class WalkKind(Enum):
+    """How _find_names walks an element."""
+
+    SKIP = auto()  # an atom without symbols
+    SYMBOL = auto()
+    EXPRESSION = auto()
+    ASSOCIATION = auto()
+    DISPATCH = auto()
+    SEQUENCE = auto()  # a Python list or tuple
 
 
-def _walk_kind(cls) -> int:
+# The WalkKind of an element, by its class. Looking the class up here avoids
+# isinstance() on the abstract base classes of the elements, which costs
+# more than the rest of the walk.
+_walk_kinds: Dict[type, WalkKind] = {
+    list: WalkKind.SEQUENCE,
+    tuple: WalkKind.SEQUENCE,
+}
+
+
+def _walk_kind(cls: type) -> WalkKind:
     from mathics.core.atoms.associations import Association
     from mathics.eval.rules import Dispatch
 
     if issubclass(cls, Symbol):
-        kind = 1
+        kind = WalkKind.SYMBOL
     elif issubclass(cls, Expression):
-        kind = 2
+        kind = WalkKind.EXPRESSION
     elif issubclass(cls, Association):
-        kind = 3
+        kind = WalkKind.ASSOCIATION
     elif issubclass(cls, Dispatch):
-        kind = 4
+        kind = WalkKind.DISPATCH
     elif issubclass(cls, (list, tuple)):
-        kind = 5
+        kind = WalkKind.SEQUENCE
     else:
-        kind = 0
+        kind = WalkKind.SKIP
     _walk_kinds[cls] = kind
     return kind
 
@@ -107,6 +121,13 @@ def _find_names(
     With a `budget` ([number of expressions]), raise _BudgetExceeded when
     more expressions than that would have to be walked."""
     kinds = _walk_kinds
+    # Local names, compared with `is`: faster than looking the members up
+    # on WalkKind for every element.
+    SKIP = WalkKind.SKIP
+    SYMBOL = WalkKind.SYMBOL
+    EXPRESSION = WalkKind.EXPRESSION
+    ASSOCIATION = WalkKind.ASSOCIATION
+    DISPATCH = WalkKind.DISPATCH
     stack = list(roots)
     pop = stack.pop
     push = stack.append
@@ -117,9 +138,9 @@ def _find_names(
         kind = kinds.get(cls)
         if kind is None:
             kind = _walk_kind(cls)
-        if kind == 0:
+        if kind is SKIP:
             continue
-        if kind == 1:
+        if kind is SYMBOL:
             name = element.name
             if name in names:
                 found.add(name)
@@ -134,12 +155,12 @@ def _find_names(
             budget[0] -= 1
             if budget[0] < 0:
                 raise _BudgetExceeded
-        if kind == 2:
+        if kind is EXPRESSION:
             push(element._head)
             extend(element._elements)
-        elif kind == 3:
+        elif kind is ASSOCIATION:
             push(element.expr)
-        elif kind == 4:
+        elif kind is DISPATCH:
             push(element.src)
         else:
             extend(element)
