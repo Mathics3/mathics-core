@@ -3,6 +3,8 @@
 Scoping Constructs
 """
 
+from typing import Final
+
 from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.assignment import get_symbol_list
@@ -22,7 +24,7 @@ from mathics.eval.scoping import (
 )
 
 # See Module.eval.
-RELEASE_BUDGET = 1000
+RELEASE_BUDGET: Final[int] = 1000
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
