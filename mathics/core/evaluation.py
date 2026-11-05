@@ -149,6 +149,7 @@ class Evaluation:
         self.out: List[_Out] = []
         self.output = output if output else Output()
         self.predetermined_out = None
+        self.compound_out_depth = 1
         self.quiet_all = False
         self.recursion_depth = 0
 
@@ -234,6 +235,12 @@ class Evaluation:
         self.deadline = None if timeout is None else self.start_time + timeout
         self.exc_result = self.SymbolNull
         self.last_eval = None
+        # A value left by an evaluation that was interrupted must not
+        # become the Out[] of this one.
+        self.predetermined_out = None
+        # The recursion depth at which a CompoundExpression sets
+        # predetermined_out (see CompoundExpression.eval).
+        self.compound_out_depth = 1
         if format is None:
             format = self.format
 

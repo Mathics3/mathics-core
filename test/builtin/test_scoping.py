@@ -77,3 +77,60 @@ def test_scoping_constructs(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # Local variables that nothing references are removed when the
+        # Module is done, as in WMA.
+        (
+            'mf[n_] := Module[{e = Range[n], c}, c = e^2; Total[c]]; mf[10]; Names["Global`e$*"]',
+            "{}",
+        ),
+        (
+            'TimeConstrained[Module[{big = Range[10^5]}, While[True, big[[1]]]], 0.2]; Names["Global`big$*"]',
+            "{}",
+        ),
+        (
+            'CheckAbort[Module[{ab = Range[10]}, Abort[]], 0]; Names["Global`ab$*"]',
+            "{}",
+        ),
+        # ... but the ones still referenced stay. These were checked against WMA 15.
+        ("mg := Module[{x}, mh = x; x = 5]; mg; mh", "5"),
+        ("Module[{cnt = 0}, minc[] := ++cnt]; minc[]; minc[]", "2"),
+        ("mk[] := Module[{r = 7}, Return[Hold[r]]]; ReleaseHold[mk[]]", "7"),
+        ("ReleaseHold[Catch[Module[{t = 8}, Throw[Hold[t]]]]]", "8"),
+        ("mff = Module[{a = 5}, # + a &]; mff[1]", "6"),
+        ("Module[{q = 3}, mgg = Function[x, x + q]]; mgg[1]", "4"),
+        ("mmk[] := Module[{p, w = 2}, p[x_] := x w; p]; mpp = mmk[]; mpp[3]", "6"),
+        ("Module[{u = 1, v}, v = Hold[u]; mstore = v]; ReleaseHold[mstore]", "1"),
+        (
+            'Module[{s1 = 4}, massoc = <|"k" -> Hold[s1]|>]; ReleaseHold[massoc["k"]]',
+            "4",
+        ),
+        (
+            "Module[{s2 = 6}, mdisp = Dispatch[{z -> Hold[s2]}]]; ReleaseHold[z /. mdisp]",
+            "6",
+        ),
+        (
+            "Module[{o1 = 9}, Options[moptf] = {mopt -> Hold[o1]}]; ReleaseHold[OptionValue[moptf, mopt]]",
+            "9",
+        ),
+        ("Module[{d1 = 10}, mdv[1] = Hold[d1]]; ReleaseHold[mdv[1]]", "10"),
+        (
+            "Module[{u1 = 11}, muptag /: muph[muptag] = Hold[u1]]; ReleaseHold[muph[muptag]]",
+            "11",
+        ),
+        (
+            "Module[{n1 = 12, n2}, n2 = Hold[n1]; Module[{}, mkeep = Hold[n2]]]; ReleaseHold[ReleaseHold[mkeep]]",
+            "12",
+        ),
+        (
+            "Module[{y1 = 13}, Module[{y2 = Hold[y1]}, mdeep = y2]]; ReleaseHold[mdeep]",
+            "13",
+        ),
+    ],
+)
+def test_module_releases_unreferenced_variables(str_expr, str_expected):
+    check_evaluation(str_expr, str_expected, hold_expected=True)
