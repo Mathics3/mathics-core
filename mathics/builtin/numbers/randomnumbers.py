@@ -80,7 +80,7 @@ class _RandomEnvBase:
         self.evaluation = evaluation
 
     def __enter__(self):
-        state = self.evaluation.definitions.get_config_value("$RandomState")
+        state = self.evaluation.definitions.get_config_value("System`$RandomState")
         set_random_state(state)
         return self
 

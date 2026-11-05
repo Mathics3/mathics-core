@@ -455,7 +455,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                 # to catch symbolic looping rewrite expansions.
                 # We do this to model Mathematica behavior more closely.
                 limit = (
-                    evaluation.definitions.get_config_value("$IterationLimit")
+                    evaluation.definitions.get_config_value("System`$IterationLimit")
                     or sys.maxsize
                 )
                 if limit is None:
