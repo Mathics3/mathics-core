@@ -226,3 +226,113 @@ def test_TimeConstrained(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+timeconstrained_unsupported = pytest.mark.skipif(
+    sys.platform in ("emscripten",) or not have_timed_threads_for_timeconstrained,
+    reason="TimeConstrained[] is not supported in Pyodide or an unpatched 'stopit'",
+)
+
+# SymPy's limit_seq runs for minutes on this sequence, and DiscreteLimit
+# wraps it in ``except Exception``.
+SLOW_DISCRETE_LIMIT = (
+    "DiscreteLimit[Fibonacci[n+1]/Fibonacci[n] + HarmonicNumber[n]/Log[n], "
+    "n->Infinity]"
+)
+
+
+@timeconstrained_unsupported
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg"),
+    [
+        (
+            f"TimeConstrained[{SLOW_DISCRETE_LIMIT}, 0.5, failed]",
+            "failed",
+            "A timeout inside an `except Exception` must not give the "
+            "unevaluated DiscreteLimit",
+        ),
+        (
+            f"TimeConstrained[TimeConstrained[{SLOW_DISCRETE_LIMIT}, 0.5, inner]; "
+            "after, 10, outer]",
+            "after",
+            "The inner TimeConstrained times out; the outer one goes on",
+        ),
+        (
+            f"TimeConstrained[TimeConstrained[{SLOW_DISCRETE_LIMIT}, 10, inner]; "
+            "after, 0.5, outer]",
+            "outer",
+            "The outer TimeConstrained times out inside the inner one",
+        ),
+        (
+            "TimeConstrained[TimeConstrained[Pause[10]; x, 0.5, inner]; after, "
+            "10, outer]",
+            "after",
+            "The inner TimeConstrained times out; the outer one goes on",
+        ),
+        (
+            "TimeConstrained[TimeConstrained[Pause[10]; x, 10, inner]; after, "
+            "0.5, outer]",
+            "outer",
+            "The outer TimeConstrained times out inside the inner one",
+        ),
+        (
+            "TimeConstrained[TimeConstrained[x, 10, inner], 10, outer]",
+            "x",
+            "Neither TimeConstrained times out",
+        ),
+    ],
+)
+def test_TimeConstrained_timeout_is_not_swallowed(str_expr, str_expected, fail_msg):
+    """A TimeConstrained that times out gives its failure value, also when
+    the timeout lands in code that catches Exception (MATH-431)."""
+    start = time.time()
+    check_evaluation(str_expr, str_expected, failure_message=fail_msg)
+    assert time.time() - start < 8, "the timeout came much too late"
+    # Nothing is left behind: TimeRemaining[] is back to Infinity,
+    # and no stray timeout hits the next evaluation.
+    check_evaluation("TimeRemaining[]", "Infinity")
+    check_evaluation("Do[Null, {10^4}]; done", "done")
+
+
+class _SwallowingBody:
+    """Stands for an expression whose evaluation catches the timeout
+    and returns a partial result."""
+
+    def __init__(self, handler):
+        self.handler = handler
+        self.caught = 0
+
+    def evaluate(self, evaluation):
+        from mathics.core.symbols import Symbol
+
+        deadline = time.time() + 1.0
+        while time.time() < deadline:
+            try:
+                while time.time() < deadline:
+                    pass
+            except self.handler:
+                self.caught += 1
+        return Symbol("Global`partial")
+
+
+@timeconstrained_unsupported
+@pytest.mark.parametrize("handler", [Exception, BaseException])
+def test_TimeConstrained_swallowed_timeout(handler):
+    """Even when the body swallows the timeout and returns, the result is
+    the failure expression, not the partial result (MATH-431)."""
+    from test.helper import session
+
+    from mathics.core.symbols import Symbol
+    from mathics.eval.datetime import eval_timeconstrained
+
+    body = _SwallowingBody(handler)
+    result = eval_timeconstrained(
+        body, 0.1, Symbol("Global`failed"), session.evaluation
+    )
+    assert result is not None and result.get_name() == "Global`failed"
+    if handler is Exception:
+        # The timeout is a BaseException: `except Exception` does not catch
+        # it, and it ends the body.
+        assert body.caught == 0
+    assert session.evaluation.timeout_queue == []
+    check_evaluation("Do[Null, {10^4}]; done", "done")

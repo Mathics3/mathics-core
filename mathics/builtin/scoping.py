@@ -3,6 +3,8 @@
 Scoping Constructs
 """
 
+from typing import Final
+
 from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.assignment import get_symbol_list
@@ -20,6 +22,9 @@ from mathics.eval.scoping import (
     eval_contexts_with_string,
     release_module_variables,
 )
+
+# See Module.eval.
+RELEASE_BUDGET: Final[int] = 1000
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
@@ -537,7 +542,14 @@ class Module(Builtin):
 
         # The local variables that nothing references once the Module is
         # done (or aborted) are removed, so that their values do not stay
-        # in the session.
+        # in the session. Deciding means walking what the Module returns
+        # and the definitions it changed: a Module inside another one gives
+        # up when that is more than RELEASE_BUDGET expressions, and leaves
+        # its variables to the enclosing Module, so that a large value
+        # built by nested Modules is walked once and not once per level.
+        nested = definitions.change_tracking_open()
+        deferred = definitions.deferred_module_variables
+        deferred_start = len(deferred)
         token = definitions.begin_change_tracking()
         results = []
         try:
@@ -558,12 +570,17 @@ class Module(Builtin):
             raise
         finally:
             changed = definitions.end_change_tracking(token)
-            release_module_variables(
+            names = [symbol.name for symbol in replace.values()]
+            names.extend(deferred[deferred_start:])
+            del deferred[deferred_start:]
+            if not release_module_variables(
                 definitions,
-                [symbol.name for symbol in replace.values()],
+                names,
                 changed,
                 results,
-            )
+                RELEASE_BUDGET if nested else None,
+            ):
+                deferred.extend(names)
 
 
 class ModuleNumber_(Predefined):

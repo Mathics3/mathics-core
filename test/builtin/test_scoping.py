@@ -130,6 +130,38 @@ def test_scoping_constructs(str_expr, msgs, str_expected, fail_msg):
             "Module[{y1 = 13}, Module[{y2 = Hold[y1]}, mdeep = y2]]; ReleaseHold[mdeep]",
             "13",
         ),
+        # A Module inside another one with a large result leaves the
+        # decision to the enclosing Module, which removes or keeps the
+        # variables the same way.
+        (
+            'mbig[] := Module[{lb = Range[3000]}, {lb, lb}]; Module[{ob}, ob = mbig[]; Length[ob]]; Names["Global`lb$*"]',
+            "{}",
+        ),
+        (
+            "mref[] := Module[{lr = 14}, Join[Hold @@ Range[3000], Hold[lr]]]; Last[List @@ Module[{or}, or = mref[]; or]]",
+            "14",
+        ),
+        (
+            'Module[{oc}, Do[Module[{lc = Range[3000]}, {lc, lc}], {3}]]; Names["Global`lc$*"]',
+            "{}",
+        ),
+        # The nested Modules defer, and the outermost one finds the variable
+        # through a definition changed inside them, not through its result:
+        # it keeps the variable while that definition holds it, and removes
+        # it once the definition is cleared. Hold[ls] comes first, so that
+        # the walk of the nested Modules runs out of budget before reaching it.
+        (
+            "msink[] := Module[{ls = 14}, Join[Hold[ls], Hold @@ (mpad /@ Range[3000])]]; "
+            "Module[{answer}, Module[{}, msinkval = msink[]; Null]; "
+            "answer = ReleaseHold[First[List @@ msinkval]]; Clear[msinkval, msink]; answer]",
+            "14",
+        ),
+        ('Names["Global`ls$*"]', "{}"),
+        (
+            "mholder[] := Module[{lk = 15}, Join[Hold[lk], Hold @@ (mpad /@ Range[3000])]]; "
+            "Module[{}, Module[{}, mheld = mholder[]; Null]]; ReleaseHold[First[List @@ mheld]]",
+            "15",
+        ),
     ],
 )
 def test_module_releases_unreferenced_variables(str_expr, str_expected):
