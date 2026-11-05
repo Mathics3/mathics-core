@@ -176,3 +176,65 @@ def test_MeijerG(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        ("Hypergeometric2F1[a, b, c, z]", "Hypergeometric2F1[a, b, c, z]"),
+        (
+            "N[Hypergeometric1F1[a, b, (x + I y)^2]]",
+            "HypergeometricPFQ[{a}, {b}, (x + (0. + 1. I) y) ^ 2.]",
+        ),
+        (
+            "N[Hypergeometric1F1[a, 1, (x + I y)^2]]",
+            "HypergeometricPFQ[{a}, {1.}, (x + (0. + 1. I) y) ^ 2.]",
+        ),
+        (
+            "N[HypergeometricPFQ[{a}, {b}, (x + I y)^2]]",
+            "HypergeometricPFQ[{a}, {b}, (x + (0. + 1. I) y) ^ 2.]",
+        ),
+        (
+            "N[Hypergeometric2F1[a, b, c, (x + I y)^2]]",
+            "Hypergeometric2F1[a, b, c, (x + (0. + 1. I) y) ^ 2.]",
+        ),
+        (
+            "HypergeometricPFQ[{a}, {b}, (x + 1. I y)^2]",
+            "HypergeometricPFQ[{a}, {b}, (x + (0. + 1. I) y) ^ 2]",
+        ),
+        (
+            "HypergeometricPFQ[{a, b}, {b, c}, z]",
+            "HypergeometricPFQ[{a}, {c}, z]",
+        ),
+        (
+            "Hypergeometric2F1[a, b, b, z]",
+            "(1 - z) ^ (-a)",
+        ),
+        (
+            "N[Hypergeometric1F1[1, 2, 1 + I]]",
+            "1.37802 + 0.909331 I",
+        ),
+        (
+            "Compile[{a, b, x, y}, N[Hypergeometric1F1[a, b, (x + I y)^2]]]" "[[2]]",
+            "HypergeometricPFQ[{a}, {b}, (x + (0. + 1. I) y) ^ 2.]",
+        ),
+    ],
+)
+def test_hypergeometric_symbolic_evaluation(str_expr, str_expected):
+    check_evaluation(None)
+    check_evaluation(
+        f"Block[{{$IterationLimit = 64}}, {str_expr}]",
+        str_expected,
+        hold_expected=True,
+        expected_messages=(),
+    )
+
+
+def test_hypergeometric_symbolic_arbitrary_precision():
+    check_evaluation(None)
+    check_evaluation(
+        "Block[{$IterationLimit = 64}, Head[N[Hypergeometric1F1[a, b, (x + I y)^2], 30]]]",
+        "HypergeometricPFQ",
+        hold_expected=True,
+        expected_messages=(),
+    )
