@@ -99,6 +99,41 @@ def test_HypergeometricPFQ(str_expr, msgs, str_expected, fail_msg):
 
 
 @pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        ("HypergeometricPFQ[a_, b_, z_]", "HypergeometricPFQ[a_, b_, z_]"),
+        ("HypergeometricPFQ[a, {b}, z]", "HypergeometricPFQ[a, {b}, z]"),
+        ("HypergeometricPFQ[{a}, b, z]", "HypergeometricPFQ[{a}, b, z]"),
+        ("HypergeometricPFQ[1, {b}, z]", "HypergeometricPFQ[1, {b}, z]"),
+        ("HypergeometricPFQ[{a}, 1, z]", "HypergeometricPFQ[{a}, 1, z]"),
+        ("HypergeometricPFQ[f[a], {b}, z]", "HypergeometricPFQ[f[a], {b}, z]"),
+        ("HypergeometricPFQ[{a}, f[b], z]", "HypergeometricPFQ[{a}, f[b], z]"),
+        ("HypergeometricPFQ[{0}, b, 1]", "HypergeometricPFQ[{0}, b, 1]"),
+        ("HypergeometricPFQ[a, {b}, 1.]", "HypergeometricPFQ[a, {b}, 1.]"),
+        ("N[HypergeometricPFQ[a_, b_, z_]]", "HypergeometricPFQ[a_, b_, z_]"),
+        ("N[HypergeometricPFQ[a, {b}, z]]", "HypergeometricPFQ[a, {b}, z]"),
+        ("N[HypergeometricPFQ[{a}, b, z]]", "HypergeometricPFQ[{a}, b, z]"),
+        ("HypergeometricPFQ[{}, {}, 1.]", "2.71828"),
+        ("N[HypergeometricPFQ[{}, {}, 1]]", "2.71828"),
+        ("HypergeometricPFQ[{0.0}, {0}, 1.]", "1."),
+        (
+            "Module[{f}, f[HypergeometricPFQ[a_, b_, z_]] := {a, b, z};"
+            "f[HypergeometricPFQ[x, y, z]]]",
+            "{x, y, z}",
+        ),
+    ],
+)
+def test_HypergeometricPFQ_parameter_lists(str_expr, str_expected):
+    check_evaluation(None)
+    check_evaluation(
+        str_expr,
+        str_expected,
+        hold_expected=True,
+        expected_messages=(),
+    )
+
+
+@pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
         ("N[HypergeometricU[{3,1},{2,4},{7,8}]]", None, "{0.00154364, 0.160156}", None),
