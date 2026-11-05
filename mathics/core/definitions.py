@@ -287,6 +287,9 @@ class Definitions:
         # the outermost one began.
         self._change_marks: List[int] = []
         self._change_log: List[Definition] = []
+        # The local variables of Modules that left the decision to remove
+        # them to an enclosing Module (see Module.eval).
+        self.deferred_module_variables: List[str] = []
         self.outputforms = list(OUTPUT_FORMS)
         self.printforms = list(PRINT_FORMS)
         self.proxy: Dict[str, Set[str]] = defaultdict(set)
@@ -855,6 +858,10 @@ class Definitions:
         token to pass to end_change_tracking()."""
         self._change_marks.append(self.now)
         return len(self._change_log)
+
+    def change_tracking_open(self) -> bool:
+        """Whether a change tracking (begin_change_tracking) is open."""
+        return bool(self._change_marks)
 
     def end_change_tracking(self, token: int) -> List[Definition]:
         """Close the tracking opened by begin_change_tracking() that returned
