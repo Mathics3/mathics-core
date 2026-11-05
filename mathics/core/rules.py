@@ -55,13 +55,108 @@ from inspect import signature
 from itertools import chain
 from typing import Any, Callable, Optional
 
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.keycomparable import PATTERN_SORT_KEY_CONDITIONAL, KeyComparable
 from mathics.core.pattern import BasePattern, StopGenerator
-from mathics.core.symbols import SymbolTrue, strip_context
-from mathics.core.systemsymbols import RULE_SYMBOL_HEADS, SymbolCondition
+from mathics.core.symbols import Symbol, SymbolSequence, SymbolTrue, strip_context
+from mathics.core.systemsymbols import (
+    RULE_SYMBOL_HEADS,
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolCondition,
+    SymbolPattern,
+)
+
+
+def simple_pattern(pattern: BaseElement) -> Optional[tuple]:
+    """
+    For a pattern ``h[a_, b_k, ..., x___]``, with ``h`` a symbol, distinct
+    names, blanks that are empty or name a symbol ``k``, and at most a final
+    ``x___`` or ``x__``, return ``(h, singles, sequence)``: ``singles`` is a
+    tuple of (name, ``k`` or None), ``sequence`` is (name, least count) or
+    None. Otherwise return None.
+
+    When each single element has its head ``k`` and the number of elements
+    fits, the first match of such a pattern binds the names to the elements
+    in order; see `simple_match`.
+    """
+    if not isinstance(pattern, Expression):
+        return None
+    head = pattern.head
+    if not isinstance(head, Symbol):
+        return None
+    singles = []
+    sequence = None
+    names = set()
+    for var in pattern.elements:
+        if sequence is not None or not var.has_form(SymbolPattern, 2):
+            return None
+        name, blank = var.elements
+        if not isinstance(name, Symbol) or not isinstance(blank, Expression):
+            return None
+        name = name.get_name()
+        if name in names:
+            return None
+        names.add(name)
+        blank_head = blank.head
+        if blank_head is SymbolBlank:
+            if not blank.elements:
+                singles.append((name, None))
+            elif len(blank.elements) == 1 and isinstance(blank.elements[0], Symbol):
+                singles.append((name, blank.elements[0]))
+            else:
+                return None
+        elif blank.elements:
+            return None
+        elif blank_head is SymbolBlankNullSequence:
+            sequence = (name, 0)
+        elif blank_head is SymbolBlankSequence:
+            sequence = (name, 1)
+        else:
+            return None
+    return head, tuple(singles), sequence
+
+
+def simple_match(simple: tuple, expression: BaseElement) -> Optional[dict]:
+    """
+    The first match of a pattern described by `simple_pattern` on
+    `expression`, when it is sure to be the binding of the names to the
+    elements in order; None when the pattern matcher has to decide.
+    """
+    if not isinstance(expression, Expression):
+        return None
+    head, singles, sequence = simple
+    if expression.head is not head:
+        return None
+    elements = expression.elements
+    count = len(singles)
+    if sequence is None:
+        if len(elements) != count:
+            return None
+    elif len(elements) < count + sequence[1]:
+        return None
+    vars = {}
+    for (name, blank_head), element in zip(singles, elements):
+        element_head = element.get_head()
+        # A Blank does not match every Sequence; let the matcher decide.
+        if element_head is SymbolSequence:
+            return None
+        if blank_head is not None and element_head is not blank_head:
+            return None
+        vars[name] = element
+    if sequence is not None:
+        rest = elements[count:]
+        if len(rest) == 1:
+            vars[sequence[0]] = rest[0]
+        else:
+            value = Expression(SymbolSequence, *rest)
+            value.pattern_sequence = True
+            vars[sequence[0]] = value
+    return vars
 
 
 def _python_function_arguments(f):
@@ -130,6 +225,10 @@ class BaseRule(KeyComparable, ABC):
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
     """
+
+    # For a rule whose first match is final and whose pattern is plain,
+    # such as head[x___] or head[a_, b_], what `simple_match` needs.
+    simple: Optional[tuple] = None
 
     def __init__(
         self,
@@ -201,6 +300,28 @@ class BaseRule(KeyComparable, ABC):
 
                 # only first possibility counts
 
+        # Most builtin functions are defined by rules such as h[x___] or
+        # h[a_, b_]: when their first match is plain, the pattern matcher is
+        # not needed (for Orderless h it would go through the subsets of the
+        # elements).
+        if self.simple is not None and not return_list and self.first_match_is_final():
+            vars = simple_match(self.simple, expression)
+        else:
+            vars = None
+        if vars is not None:
+            try:
+                yield_match(vars, None)
+            except StopGenerator_BaseRule as exc:
+                expr = exc.value
+                if (
+                    hasattr(expression, "location")
+                    and hasattr(expr, "location")
+                    and expression.location is not None
+                ):
+                    expr.location = expression.location
+                return expr
+            return None
+
         try:
             self.pattern.match(
                 expression,
@@ -228,6 +349,14 @@ class BaseRule(KeyComparable, ABC):
             return result_list
         else:
             return None
+
+    def first_match_is_final(self) -> bool:
+        """
+        Whether the first match of the pattern is the only one `apply`
+        needs to look at. Then a plain pattern (see `simple_pattern`) can
+        be matched without the pattern matcher.
+        """
+        return False
 
     def apply_rule(
         self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
@@ -331,6 +460,30 @@ class RewriteRule(BaseRule):
             pattern, attributes=attributes, evaluation=evaluation
         )
         self.replace = replace
+        self.simple = simple_pattern(pattern)
+
+    def first_match_is_final(self) -> bool:
+        """
+        A condition in the replacement can reject a match, and then the
+        next one is tried. A plain pattern has a single match, unless its
+        head is Flat, Orderless or OneIdentity, as the pattern matcher
+        sees it.
+        """
+        final = self.__dict__.get("_first_match_is_final")
+        if final is None:
+            # Imported here: mathics.core.pattern imports this module.
+            from mathics.core.pattern.deferred import DeferredExpressionPattern
+            from mathics.core.pattern.ordered import OrderedExpressionPattern
+
+            pattern = self.pattern
+            if isinstance(pattern, DeferredExpressionPattern):
+                # Its kind is known only once it is matched.
+                return False
+            final = type(pattern) is OrderedExpressionPattern and not (
+                pattern.attributes & (A_FLAT | A_ORDERLESS | A_ONE_IDENTITY)
+            )
+            self._first_match_is_final = final
+        return final
 
     def __repr__(self) -> str:
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
@@ -466,6 +619,9 @@ class FunctionApplyRule(BaseRule):
         attributes: Optional[int] = None,
     ) -> None:
         super(FunctionApplyRule, self).__init__(pattern, attributes=attributes)
+        # The first match is the only one used (see `apply`), so for a
+        # plain pattern such as h[x___] it is known without matching.
+        self.simple = simple_pattern(pattern)
         self.name = name
         self.location = self.function = function
         self.check_options = check_options
@@ -508,6 +664,10 @@ class FunctionApplyRule(BaseRule):
 
     def __setstate__(self, dict):
         self.__dict__.update(dict)  # update attributes
+
+    def first_match_is_final(self) -> bool:
+        """Only the first match of a builtin rule is used."""
+        return True
 
     @property
     def rhs(self):
