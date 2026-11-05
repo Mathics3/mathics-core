@@ -130,6 +130,21 @@ def test_scoping_constructs(str_expr, msgs, str_expected, fail_msg):
             "Module[{y1 = 13}, Module[{y2 = Hold[y1]}, mdeep = y2]]; ReleaseHold[mdeep]",
             "13",
         ),
+        # A Module inside another one with a large result leaves the
+        # decision to the enclosing Module, which removes or keeps the
+        # variables the same way.
+        (
+            'mbig[] := Module[{lb = Range[3000]}, {lb, lb}]; Module[{ob}, ob = mbig[]; Length[ob]]; Names["Global`lb$*"]',
+            "{}",
+        ),
+        (
+            "mref[] := Module[{lr = 14}, Join[Hold @@ Range[3000], Hold[lr]]]; Last[List @@ Module[{or}, or = mref[]; or]]",
+            "14",
+        ),
+        (
+            'Module[{oc}, Do[Module[{lc = Range[3000]}, {lc, lc}], {3}]]; Names["Global`lc$*"]',
+            "{}",
+        ),
     ],
 )
 def test_module_releases_unreferenced_variables(str_expr, str_expected):
