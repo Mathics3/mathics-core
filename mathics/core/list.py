@@ -5,11 +5,11 @@ Module containing ListExpression
 import reprlib
 from typing import Any
 
-from mathics.core.element import ElementsProperties
+from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, ExpressionCache
 from mathics.core.symbols import EvalMixin, Symbol, SymbolList
-from mathics.core.systemsymbols import SymbolUnevaluated
+from mathics.core.systemsymbols import SymbolSequence, SymbolUnevaluated
 
 
 class ListExpression(Expression):
@@ -215,13 +215,55 @@ class ListExpression(Expression):
             # elements again. Without this, a list such as a graph's edges
             # {{{1, 2}, EdgeWeight -> 0.5}, ...} was evaluated element by
             # element at every read of the variable holding it.
+            new = new._flatten_sequence_elements(evaluation)
             new._timestamp_cache(evaluation)
             if new is copy:
                 # No element changed: this list, e.g. the value stored in a
                 # variable, is as evaluated as its copy.
                 self._cache = new._cache
             return new, False
-        return self, False
+        # Elements that count as evaluated may still be Sequence[...], as in
+        # {1, Sequence[2, 3]}: List does not hold its elements, so they are
+        # spliced in.
+        new = self._flatten_sequence_elements(evaluation)
+        if new is not self:
+            new._timestamp_cache(evaluation)
+        return new, False
+
+    def _flatten_sequence_elements(self, evaluation) -> "ListExpression":
+        """
+        Splice the elements of any Sequence[...] element into the list, as
+        Step 3 of Expression.rewrite_apply_eval_step does. A list whose
+        elements are all atoms (is_flat) is returned at once; otherwise the
+        positions of possible sequences come from the cache, which is built
+        once per list and shared by its copies.
+        """
+        properties = self.elements_properties
+        if properties is None:
+            self._build_elements_properties()
+            properties = self.elements_properties
+        if properties.is_flat:
+            return self
+        indices = self.sequences()
+        if not indices:
+            return self
+        elements = self._elements
+        flattened: list[BaseElement] = []
+        k = 0
+        for i in indices:
+            element = elements[i]
+            # The cache marks every element with Sequence somewhere inside;
+            # only those with head Sequence are spliced.
+            if element.get_head() is SymbolSequence:
+                flattened.extend(elements[k:i])
+                flattened.extend(element.elements)
+                k = i + 1
+        if k == 0:
+            return self
+        flattened.extend(elements[k:])
+        new_list = ListExpression(*flattened)
+        new_list._build_elements_properties()
+        return new_list
 
     def set_head(self, head: Symbol):
         """
