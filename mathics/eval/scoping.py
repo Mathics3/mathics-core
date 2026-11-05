@@ -3,6 +3,8 @@ Evaluation module corresponding to builtin functions in mathics.builtins.scoping
 """
 
 import re
+from enum import Enum, auto
+from typing import Dict, Optional
 
 from mathics.core.atoms import String
 from mathics.core.definitions import Definitions
@@ -66,39 +68,111 @@ def _definition_roots(definition):
     yield from definition.options.values()
 
 
-def _find_names(roots, names: set, found: set, seen: set) -> None:
-    """Add to `found` the names in `names` of the symbols that occur in
-    `roots`. `seen` holds the ids of the expressions already walked."""
+class WalkKind(Enum):
+    """How _find_names walks an element."""
+
+    SKIP = auto()  # an atom without symbols
+    SYMBOL = auto()
+    EXPRESSION = auto()
+    ASSOCIATION = auto()
+    DISPATCH = auto()
+    SEQUENCE = auto()  # a Python list or tuple
+
+
+# The WalkKind of an element, by its class. Looking the class up here avoids
+# isinstance() on the abstract base classes of the elements, which costs
+# more than the rest of the walk.
+_walk_kinds: Dict[type, WalkKind] = {
+    list: WalkKind.SEQUENCE,
+    tuple: WalkKind.SEQUENCE,
+}
+
+
+def _walk_kind(cls: type) -> WalkKind:
     from mathics.core.atoms.associations import Association
     from mathics.eval.rules import Dispatch
 
+    if issubclass(cls, Symbol):
+        kind = WalkKind.SYMBOL
+    elif issubclass(cls, Expression):
+        kind = WalkKind.EXPRESSION
+    elif issubclass(cls, Association):
+        kind = WalkKind.ASSOCIATION
+    elif issubclass(cls, Dispatch):
+        kind = WalkKind.DISPATCH
+    elif issubclass(cls, (list, tuple)):
+        kind = WalkKind.SEQUENCE
+    else:
+        kind = WalkKind.SKIP
+    _walk_kinds[cls] = kind
+    return kind
+
+
+class _BudgetExceeded(Exception):
+    pass
+
+
+def _find_names(
+    roots, names: set, found: set, seen: set, budget: Optional[list] = None
+) -> None:
+    """Add to `found` the names in `names` of the symbols that occur in
+    `roots`. `seen` holds the ids of the expressions already walked.
+
+    With a `budget` ([number of expressions]), raise _BudgetExceeded when
+    more expressions than that would have to be walked."""
+    kinds = _walk_kinds
+    # Local names, compared with `is`: faster than looking the members up
+    # on WalkKind for every element.
+    SKIP = WalkKind.SKIP
+    SYMBOL = WalkKind.SYMBOL
+    EXPRESSION = WalkKind.EXPRESSION
+    ASSOCIATION = WalkKind.ASSOCIATION
+    DISPATCH = WalkKind.DISPATCH
     stack = list(roots)
+    pop = stack.pop
+    push = stack.append
+    extend = stack.extend
     while stack:
-        element = stack.pop()
-        if isinstance(element, Symbol):
+        element = pop()
+        cls = element.__class__
+        kind = kinds.get(cls)
+        if kind is None:
+            kind = _walk_kind(cls)
+        if kind is SKIP:
+            continue
+        if kind is SYMBOL:
             name = element.name
             if name in names:
                 found.add(name)
                 if len(found) == len(names):
                     return
             continue
-        if id(element) in seen:
+        key = id(element)
+        if key in seen:
             continue
-        seen.add(id(element))
-        if isinstance(element, Expression):
-            stack.append(element.head)
-            stack.extend(element.elements)
-        elif isinstance(element, Association):
-            stack.append(element.expr)
-        elif isinstance(element, Dispatch):
-            stack.append(element.src)
-        elif isinstance(element, (list, tuple)):
-            stack.extend(element)
+        seen.add(key)
+        if budget is not None:
+            budget[0] -= 1
+            if budget[0] < 0:
+                raise _BudgetExceeded
+        if kind is EXPRESSION:
+            push(element._head)
+            extend(element._elements)
+        elif kind is ASSOCIATION:
+            push(element.expr)
+        elif kind is DISPATCH:
+            push(element.src)
+        else:
+            extend(element)
 
 
 def release_module_variables(
-    definitions: Definitions, names: list, changed: list, results: list
-) -> None:
+    definitions: Definitions,
+    names: list,
+    changed: list,
+    results: list,
+    budget: Optional[int] = None,
+) -> bool:
     """Remove the definitions of the local variables `names` of a Module
     that nothing references any more, as WMA does with its temporary symbols.
 
@@ -110,41 +184,51 @@ def release_module_variables(
 
     Without this, every value given to a Module variable stays in the
     session for good, including the partial values of an aborted Module.
+
+    With a `budget`, give up and return False, removing nothing, when more
+    than `budget` expressions would have to be walked to decide; the
+    enclosing Module then decides for these variables too. Return True
+    otherwise.
     """
     user = definitions.user
     candidates = {
         name: definition for name in names if (definition := user.get(name)) is not None
     }
     if not candidates:
-        return
+        return True
     pending = set(candidates)
     found: set = set()
     seen: set = set()
-    _find_names(results, pending, found, seen)
+    left = None if budget is None else [budget]
+    try:
+        _find_names(results, pending, found, seen, left)
 
-    walked = set()
-    for definition in changed:
-        if not pending - found:
-            break
-        name = definition.name
-        if name in candidates or id(definition) in walked:
-            continue
-        walked.add(id(definition))
-        if user.get(name) is not definition:
-            continue
-        _find_names(_definition_roots(definition), pending, found, seen)
+        walked = set()
+        for definition in changed:
+            if not pending - found:
+                break
+            name = definition.name
+            if name in candidates or id(definition) in walked:
+                continue
+            walked.add(id(definition))
+            if user.get(name) is not definition:
+                continue
+            _find_names(_definition_roots(definition), pending, found, seen, left)
 
-    # A kept variable keeps the variables its own definition refers to.
-    work = list(found)
-    while work and pending - found:
-        name = work.pop()
-        before = set(found)
-        _find_names(_definition_roots(candidates[name]), pending, found, seen)
-        work.extend(found - before)
+        # A kept variable keeps the variables its own definition refers to.
+        work = list(found)
+        while work and pending - found:
+            name = work.pop()
+            before = set(found)
+            _find_names(_definition_roots(candidates[name]), pending, found, seen, left)
+            work.extend(found - before)
+    except _BudgetExceeded:
+        return False
 
     for name in pending - found:
         del user[name]
         definitions.clear_cache(name)
+    return True
 
 
 def eval_contexts(definitions: Definitions) -> ListExpression:
