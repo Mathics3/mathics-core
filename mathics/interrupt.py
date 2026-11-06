@@ -16,6 +16,26 @@ from mathics.core.interrupt import AbortInterrupt, ReturnInterrupt, TimeoutInter
 from mathics.eval.stackframe import find_Mathics3_evaluation_method, get_eval_Expression
 
 
+# The state of an evaluation that Evaluation.evaluate() resets and leaves
+# behind (it ends with stop()). The inspect dialog evaluates its input with
+# the evaluation that was interrupted, so it puts these back afterwards:
+# otherwise the interrupted evaluation, once resumed, stops with "Timeout
+# reached" at its next check.
+INTERRUPTED_STATE = (
+    "start_time",
+    "iteration_count",
+    "recursion_depth",
+    "timeout",
+    "stopped",
+    "deadline",
+    "exc_result",
+    "last_eval",
+    "predetermined_out",
+    "compound_out_depth",
+    "out",
+)
+
+
 # See also __main__'s interactive_eval_loop
 def inspect_eval_loop(evaluation: Evaluation):
     """
@@ -28,7 +48,11 @@ def inspect_eval_loop(evaluation: Evaluation):
     else:
         was_inside_interrupt = False
 
-    previous_recursion_depth = evaluation.recursion_depth
+    interrupted = {
+        name: getattr(evaluation, name)
+        for name in INTERRUPTED_STATE
+        if hasattr(evaluation, name)
+    }
     while True:
         try:
             # Reset line number within an In[] line number.
@@ -70,7 +94,8 @@ def inspect_eval_loop(evaluation: Evaluation):
             # raise to pass the error code on, e.g. Quit[1]
             raise
         finally:
-            evaluation.recursion_depth = previous_recursion_depth
+            for name, value in interrupted.items():
+                setattr(evaluation, name, value)
             if shell is not None:
                 shell.is_inside_interrupt = was_inside_interrupt
 
