@@ -15,7 +15,11 @@ from mathics.core.load_builtin import import_and_load_builtins
 from mathics.repl import TerminalShell, interactive_eval_loop
 
 
-def test_abort_while_reading_input_keeps_the_session(capsys):
+def test_abort_while_reading_input_keeps_the_session(capsys, monkeypatch):
+    import mathics.core as mathics_core
+
+    # test_main_preeval.py leaves a hook of its own installed
+    monkeypatch.setattr(mathics_core, "PRE_EVALUATION_HOOK", None)
     import_and_load_builtins()
     definitions = Definitions(add_builtin=True)
     shell = TerminalShell(
