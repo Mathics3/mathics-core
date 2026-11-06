@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 Implementation of builtin optimizers.
 """
+
 from typing import Optional
 
 from mathics.builtin.scoping import dynamic_scoping
@@ -31,8 +31,10 @@ from mathics.core.systemsymbols import (
     SymbolLessEqual,
     SymbolLog,
     SymbolNone,
+    SymbolSequence,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.testing_expressions import eval_comparison_operator
 
 
 def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
@@ -97,7 +99,11 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         vals = [v for v in vals if isinstance(v[1], Number)]
         v0 = vals[0]
         for v in vals:
-            if Expression(SymbolLess, v[1], v0[1]).evaluate(evaluation) is SymbolTrue:
+            args = Expression(SymbolSequence, v[1], v0[1])
+            if (
+                eval_comparison_operator(SymbolLessEqual, args, evaluation)
+                is SymbolTrue
+            ):
                 v0 = v
         return v0
 
@@ -147,10 +153,8 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         offset = eval_N(val_d1 / abs(val_d2), evaluation)
         x1 = eval_N(x0 - offset, evaluation)
         new_val = eval_N(f.replace_vars({x_name: x1}), evaluation)
-        if (
-            Expression(SymbolLessEqual, new_val, curr_val).evaluate(evaluation)
-            is SymbolTrue
-        ):
+        args = Expression(SymbolSequence, new_val, curr_val)
+        if eval_comparison_operator(SymbolLessEqual, args, evaluation) is SymbolTrue:
             if is_zero(offset, acc_goal, prec_goal, evaluation):
                 if is_find_maximum:
                     return (x1, -curr_val), True

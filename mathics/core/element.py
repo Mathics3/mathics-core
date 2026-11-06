@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 (Base) Element of a general (M-)Expression.
 
@@ -6,8 +5,9 @@ Here we have the base class and related functions for elements inside an Express
 """
 
 from abc import ABC
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Final, Iterable, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Final, Optional, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.keycomparable import KeyComparable
@@ -108,7 +108,7 @@ class BaseElement(KeyComparable, ABC):
     Some important subclasses: Atom and Expression.
     """
 
-    options: Optional[dict[str, Any]]
+    options: dict[str, Any] | None
     last_evaluated: Any
     unevaluated: bool
     # this variable holds a function defined in mathics.core.expression that creates an expression
@@ -130,9 +130,7 @@ class BaseElement(KeyComparable, ABC):
         """
         if options:
             l1, l2 = options["levelspec"]
-            if level < l1:
-                return self, False
-            elif l2 is not None and level > l2:
+            if level < l1 or l2 is not None and level > l2:
                 return self, False
 
         for rule in rules:
@@ -141,7 +139,7 @@ class BaseElement(KeyComparable, ABC):
                 return result, True
         return self, False
 
-    def equal2(self, rhs: Any) -> Optional[bool]:
+    def equal2(self, rhs: Any) -> bool | None:
         """
         Mathics3 two-argument Equal (==)
         returns True if self and rhs are identical.
@@ -160,7 +158,7 @@ class BaseElement(KeyComparable, ABC):
 
     def format(
         self, evaluation, form, **kwargs
-    ) -> Optional[Union["BaseElement", "BoxElementMixin"]]:
+    ) -> Union["BaseElement", "BoxElementMixin"] | None:
         from mathics.core.symbols import Symbol
         from mathics.format.box import format_element
 
@@ -221,7 +219,7 @@ class BaseElement(KeyComparable, ABC):
 
     def get_option_values(
         self, evaluation: "Evaluation", allow_symbols=False, stop_on_error=True
-    ) -> Optional[dict]:
+    ) -> dict | None:
         pass
 
     def get_sequence(self) -> Sequence["BaseElement"]:
@@ -245,7 +243,7 @@ class BaseElement(KeyComparable, ABC):
         if self.get_head() is SymbolSequence:
             return self.get_elements()
         else:
-            return tuple([self])
+            return (self,)
 
     def get_string_value(self) -> Optional[str]:
         return None
@@ -253,7 +251,7 @@ class BaseElement(KeyComparable, ABC):
     def has_form(
         self,
         heads: Iterable["Symbol"] | "Symbol",
-        *element_counts: Optional[int],
+        *element_counts: int | None,
     ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
         with Head.name in `heads` and several elements according to the specification in
