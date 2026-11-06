@@ -23,7 +23,11 @@ def test_abort_while_reading_input_keeps_the_session(capsys, monkeypatch):
     import_and_load_builtins()
     definitions = Definitions(add_builtin=True)
     shell = TerminalShell(
-        definitions, "NoColor", want_readline=False, want_completion=False, autoload=False
+        definitions,
+        "NoColor",
+        want_readline=False,
+        want_completion=False,
+        autoload=False,
     )
     script = [AbortInterrupt(), "6*7", EOFError()]
 
@@ -34,7 +38,9 @@ def test_abort_while_reading_input_keeps_the_session(capsys, monkeypatch):
         return step
 
     shell.read_line = read_line
-    interactive_eval_loop(shell, full_form=False, strict_wl_output=False, init_signal_handler=False)
+    interactive_eval_loop(
+        shell, full_form=False, strict_wl_output=False, init_signal_handler=False
+    )
     out = capsys.readouterr().out
     assert script == [], "the session ended before reading all its input"
     assert "= 42" in out, out
