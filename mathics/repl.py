@@ -21,6 +21,7 @@ from mathics import settings
 from mathics.core.atoms import String
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.expression import Expression
+from mathics.core.interrupt import AbortInterrupt
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import SymbolNull, strip_context
@@ -381,6 +382,12 @@ def interactive_eval_loop(
                 shell.print_result(result, strict_wl_output=strict_wl_output)
         except KeyboardInterrupt:
             print("\nKeyboardInterrupt")
+        except AbortInterrupt:
+            # Ctrl-C at the prompt, then "abort" in the interrupt menu: no
+            # evaluation is running, so the input being typed is dropped and
+            # a new prompt is shown. Uncaught, it ended the session with a
+            # traceback.
+            pass
         except EOFError:
             print("\n\nGoodbye!\n")
             break
