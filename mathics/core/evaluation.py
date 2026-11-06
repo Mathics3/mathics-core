@@ -2,6 +2,7 @@
 
 import os
 import sys
+import threading
 import time
 from abc import ABC
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
@@ -80,9 +81,50 @@ def python_recursion_depth(n) -> int:
 
 
 def python_stack_size(n) -> int:  # n is a Mathics3 recursion depth
-    # python_stack_frame_size is the (maximum) number of bytes Python needs for one call on the stack.
-    python_stack_frame_size = 512  # value estimated experimentally
+    # python_stack_frame_size is the C stack, in bytes, that one Python call takes on
+    # average. Since Python 3.11 a call from Python code to Python code takes none,
+    # so this is far below the size of a C frame. Measured on macOS arm64 with
+    # Python 3.11 and 3.14: a Combinatorica DepthFirstTraversal, and a recursive
+    # definition matched through PatternTest with a Module, take 0.7 to 1.4 KB
+    # per Mathics3 level. 100 gives 4 KB per level, so 400 MB for 100000 levels:
+    # address space reserved for the thread, only the part used is allocated.
+    python_stack_frame_size = 100
     return python_recursion_depth(n) * python_stack_frame_size
+
+
+# How deep a Python recursion can go is bounded by the C stack, not only by
+# sys.setrecursionlimit: matching a pattern with a Condition, for instance,
+# goes through C calls that take C stack on every Mathics3 level.
+#
+# - Python 3.11 does not check the C stack: running out of it crashes the
+#   process with a segmentation fault.
+# - Python 3.12 and 3.13 count C calls against a fixed limit, whatever the
+#   size of the stack, and raise RecursionError when it is reached.
+# - Python 3.14 checks the C stack against its real size and raises
+#   RecursionError when it runs out.
+#
+# The main thread has a small stack, typically 8 MB: a recursive Combinatorica
+# DepthFirstTraversal runs out of it before 3000 levels. Where a larger stack
+# lets an evaluation go deeper, 3.11 and 3.14 on, Evaluation.evaluate() runs
+# on a thread whose stack is sized for the deepest recursion allowed.
+
+USE_EVALUATION_THREAD = sys.platform != "emscripten" and not (
+    (3, 12) <= sys.version_info[:2] < (3, 14)
+)
+
+# MAX_INFINITE_RECURSION_DEPTH is how deep $RecursionLimit = Infinity lets an
+# evaluation go. Without a thread on Python 3.11, nothing would stop a crash.
+
+MAX_INFINITE_RECURSION_DEPTH = (
+    max(MAX_RECURSION_DEPTH, settings.DEFAULT_MAX_INFINITE_RECURSION_DEPTH)
+    if USE_EVALUATION_THREAD or sys.version_info >= (3, 12)
+    else MAX_RECURSION_DEPTH
+)
+
+# threading.stack_size() takes only whole pages: round up to whole MiB.
+_MIB = 2**20
+_stack_size = python_stack_size(max(MAX_RECURSION_DEPTH, MAX_INFINITE_RECURSION_DEPTH))
+EVALUATION_THREAD_STACK_SIZE = (_stack_size + _MIB - 1) // _MIB * _MIB
 
 
 def set_python_recursion_limit(n) -> None:
@@ -153,6 +195,14 @@ class Evaluation:
         self.compound_out_depth = 1
         self.quiet_all = False
         self.recursion_depth = 0
+        # The $RecursionLimit that inc_recursion_depth() last checked against,
+        # for the message when Python itself runs out of stack.
+        self.recursion_limit = MAX_RECURSION_DEPTH
+
+        # A SIGINT that arrived while the evaluation runs on its own thread:
+        # check_stopped() calls it, with the frame it was called from, in the
+        # evaluating thread.
+        self.interrupt_request: Optional[Callable] = None
 
         # iteration is used to keep track of evaluation chains and is
         # compared against $IterationLimit.
@@ -224,6 +274,63 @@ class Evaluation:
         exception type of result like $Aborted, Overflow, Break, or Continue.
         If none of the above applies self.exc_result is Null
         """
+        if USE_EVALUATION_THREAD and not getattr(
+            threading.current_thread(), "mathics3_evaluation", False
+        ):
+            return self._evaluate_on_thread(query, timeout, format)
+        return self._evaluate(query, timeout, format)
+
+    def _evaluate_on_thread(self, query, timeout, format):
+        """
+        Run _evaluate() on a thread whose stack holds the deepest recursion
+        allowed, and wait for it. See USE_EVALUATION_THREAD.
+        """
+        outcome: Dict[str, Any] = {}
+
+        def run():
+            try:
+                outcome["result"] = self._evaluate(query, timeout, format)
+            except BaseException as exc:  # SystemExit from Quit[] included
+                outcome["exception"] = exc
+
+        try:
+            previous_stack_size = threading.stack_size(EVALUATION_THREAD_STACK_SIZE)
+            try:
+                worker = threading.Thread(
+                    target=run, name="Mathics3 evaluation", daemon=True
+                )
+                worker.mathics3_evaluation = True  # type: ignore[attr-defined]
+                worker.start()
+            finally:
+                threading.stack_size(previous_stack_size)
+        except (RuntimeError, ValueError, MemoryError):
+            # No thread with that stack here: evaluate on this one.
+            return self._evaluate(query, timeout, format)
+
+        # A SIGINT handler that looks through the interrupted frames for a
+        # local named "evaluation" finds it here, and sees from
+        # evaluating_thread that it must hand the interrupt over.
+        evaluation = self  # noqa: F841
+        evaluating_thread = worker  # noqa: F841
+        while True:
+            try:
+                worker.join()
+                break
+            except KeyboardInterrupt:
+                # Signals reach only the main thread: pass it on.
+                from timed_threads import async_raise
+
+                if worker.is_alive() and worker.ident is not None:
+                    try:
+                        async_raise(worker.ident, KeyboardInterrupt)
+                    except ValueError:
+                        pass  # the thread has just finished
+
+        if "exception" in outcome:
+            raise outcome["exception"]
+        return outcome["result"]
+
+    def _evaluate(self, query, timeout=None, format=None):
         from mathics.core.convert.expression import to_expression
         from mathics.core.expression import Expression
         from mathics.core.rules import RewriteRule
@@ -351,14 +458,9 @@ class Evaluation:
             except RecursionError:
                 # Python ran out of stack before $RecursionLimit was
                 # reached: report it the same way.
-                self.message(
-                    "$RecursionLimit",
-                    "reclim",
-                    self.definitions.get_config_value(
-                        "System`$RecursionLimit", MAX_RECURSION_DEPTH
-                    )
-                    or MAX_RECURSION_DEPTH,
-                )
+                # The limit in effect where it ran out, not the one
+                # restored since by the Blocks that were left.
+                self.message("$RecursionLimit", "reclim", self.recursion_limit)
                 self.exc_result = SymbolAborted
             except ReturnInterrupt as ret:
                 self.exc_result = ret.expr
@@ -607,6 +709,10 @@ class Evaluation:
             self.stopped = True
         if self.stopped:
             raise TimeoutInterrupt
+        interrupt_request = self.interrupt_request
+        if interrupt_request is not None:
+            self.interrupt_request = None
+            interrupt_request(sys._getframe(1))
 
     def inc_recursion_depth(self) -> None:
         self.check_stopped()
@@ -616,11 +722,12 @@ class Evaluation:
         if limit is None:
             # $RecursionLimit is Infinity, as in Block[{$RecursionLimit = Infinity}, ...],
             # which does not go through the assignment that sets the Python limit.
-            # Go as deep as the Python stack is set up to hold.
-            limit = MAX_RECURSION_DEPTH
+            # Go as deep as the stack is set up to hold.
+            limit = MAX_INFINITE_RECURSION_DEPTH
             if sys.getrecursionlimit() < python_recursion_depth(limit):
                 set_python_recursion_limit(limit)
         limit = max(limit, MIN_RECURSION_LIMIT)
+        self.recursion_limit = limit
         self.recursion_depth += 1
         if self.recursion_depth > limit:
             self.error("$RecursionLimit", "reclim", limit)
