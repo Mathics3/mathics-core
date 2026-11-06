@@ -104,9 +104,6 @@ class Blank(_Blank):
     summary_text = "match to any single expression"
 
     def match(self, expression: BaseElement, pattern_context: dict):
-        if expression.has_form(SymbolSequence, 0):
-            return
-
         target_head = self.target_head
         if target_head is not None and expression.get_head() is not target_head:
             return
