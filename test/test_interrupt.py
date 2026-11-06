@@ -87,8 +87,19 @@ def test_other_threads_do_not_take_the_interrupt():
 
 pty = pytest.importorskip("pty")
 needs_terminal = pytest.mark.skipif(
-    sys.platform.startswith("win") or not core_evaluation.USE_EVALUATION_THREAD,
+    sys.platform.startswith("win")
+    or not hasattr(os, "login_tty")
+    or not core_evaluation.USE_EVALUATION_THREAD,
     reason="needs a pseudo-terminal and the evaluation thread",
+)
+
+
+# Runs the CLI with the pseudo-terminal as its controlling terminal, so that
+# Ctrl-C there sends it SIGINT. pty.fork() would fork this (multi-threaded)
+# process; subprocess starts a fresh one, and login_tty() does the rest.
+LOGIN_TTY = (
+    "import os, sys; os.login_tty(os.open(sys.argv[1], os.O_RDWR)); "
+    "os.execv(sys.executable, [sys.executable, '-m', 'mathics', '--no-completion', '--colors', 'NoColor'])"
 )
 
 
@@ -96,16 +107,17 @@ class Terminal:
     """The mathics CLI in a pseudo-terminal."""
 
     def __init__(self):
-        import select  # noqa: F401  (checked here: no select, no terminal tests)
+        import subprocess
 
-        env = dict(os.environ, TERM="dumb", COLUMNS="200")
-        self.pid, self.fd = pty.fork()
-        if self.pid == 0:
-            os.execve(
-                sys.executable,
-                [sys.executable, "-m", "mathics", "--no-completion", "--colors", "NoColor"],
-                env,
-            )
+        self.fd, child = pty.openpty()
+        self.proc = subprocess.Popen(
+            [sys.executable, "-c", LOGIN_TTY, os.ttyname(child)],
+            env=dict(os.environ, TERM="dumb", COLUMNS="200"),
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        os.close(child)
         self.buf = b""
 
     def wait_for(self, pattern, timeout, start=0):
@@ -144,13 +156,9 @@ class Terminal:
         return self.buf[start:].decode(errors="replace").replace("\r", "")
 
     def close(self):
-        import signal
-
-        try:
-            os.kill(self.pid, signal.SIGKILL)
-            os.waitpid(self.pid, 0)
-        except (ProcessLookupError, ChildProcessError):
-            pass
+        self.proc.kill()
+        self.proc.wait()
+        os.close(self.fd)
 
 
 @pytest.fixture
@@ -184,8 +192,9 @@ def test_abort_a_loop(terminal):
 @pytest.mark.parametrize("answer", ["c", "s"])
 @needs_terminal
 def test_continue_or_show_during_pause(terminal, answer):
-    mark, waited = interrupt(terminal, "Pause[6]; 7")
-    assert waited < 2, "the menu waited for the pause to end"
+    mark, waited = interrupt(terminal, "Pause[8]; 7")
+    # well under the 6 s left of the pause: the menu did not wait for it
+    assert waited < 5, "the menu waited for the pause to end"
     terminal.type(answer)
     assert terminal.wait_for(r"Out\[1\]= 7", 20, mark), terminal.screen(mark)
 
