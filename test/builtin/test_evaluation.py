@@ -114,7 +114,9 @@ from mathics.core import evaluation as core_evaluation
             "{h, 3}",
             "Release in the left-hand side of a definition",
         ),
-        ("ClearAll[f, h, x];", None, None, None),
+        # a = a + a above is left defined otherwise, and the next test file
+        # in the same worker that uses a hits the recursion limit
+        ("ClearAll[a, f, h, x];", None, None, None),
     ],
 )
 def test_evaluation(str_expr, msgs, str_expected, fail_msg):

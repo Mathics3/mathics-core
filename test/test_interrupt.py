@@ -109,15 +109,17 @@ class Terminal:
     def __init__(self):
         import subprocess
 
-        self.fd, child = pty.openpty()
+        self.fd, self.child = pty.openpty()
         self.proc = subprocess.Popen(
-            [sys.executable, "-c", LOGIN_TTY, os.ttyname(child)],
+            [sys.executable, "-c", LOGIN_TTY, os.ttyname(self.child)],
             env=dict(os.environ, TERM="dumb", COLUMNS="200"),
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        os.close(child)
+        # Kept open until close(): on Linux, reading the master side fails
+        # with EIO while no process has the other side open, which is the
+        # case until the CLI has opened it.
         self.buf = b""
 
     def wait_for(self, pattern, timeout, start=0):
@@ -159,6 +161,7 @@ class Terminal:
         self.proc.kill()
         self.proc.wait()
         os.close(self.fd)
+        os.close(self.child)
 
 
 @pytest.fixture
