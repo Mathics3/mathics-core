@@ -187,11 +187,31 @@ def Mathics3_basic_signal_handler(sig, interrupted_frame):
         # Evaluation._evaluate_on_thread), and only the main thread gets
         # signals. Let the evaluating thread run the handler, where it can
         # stop the evaluation, at its next check.
+        if getattr(evaluation, "interrupt_menu_open", False):
+            # The menu is on the screen already; it reads the answer.
+            return
+
         def handle_in_evaluating_thread(frame: FrameType) -> None:
-            print_fn("")
-            Mathics3_interrupt_handler(evaluation, frame, print_fn)
+            evaluation.interrupt_menu_open = True
+            try:
+                print_fn("")
+                Mathics3_interrupt_handler(evaluation, frame, print_fn)
+            finally:
+                evaluation.interrupt_menu_open = False
 
         evaluation.interrupt_request = handle_in_evaluating_thread
+
+        def still_waiting() -> None:
+            # A step that does not check for interrupts, such as a long
+            # call into SymPy, delays the menu: say that Ctrl-C was seen.
+            # Plain print: print_fn formats through Mathics3, which would
+            # take the pending interrupt on this timer thread.
+            if evaluation.interrupt_request is handle_in_evaluating_thread:
+                print("\n(interrupt: the menu opens when the current step finishes)", flush=True)
+
+        timer = threading.Timer(0.5, still_waiting)
+        timer.daemon = True
+        timer.start()
         return
     print_fn("")
     if interrupted_frame is None:

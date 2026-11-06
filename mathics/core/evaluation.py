@@ -203,6 +203,11 @@ class Evaluation:
         # check_stopped() calls it, with the frame it was called from, in the
         # evaluating thread.
         self.interrupt_request: Optional[Callable] = None
+        # True while the evaluating thread shows the interrupt menu.
+        self.interrupt_menu_open = False
+        # The thread _evaluate() runs on: the only one that takes an
+        # interrupt_request.
+        self.evaluating_thread: Optional[threading.Thread] = None
 
         # iteration is used to keep track of evaluation chains and is
         # compared against $IterationLimit.
@@ -331,6 +336,8 @@ class Evaluation:
         return outcome["result"]
 
     def _evaluate(self, query, timeout=None, format=None):
+        if self.evaluating_thread is None or not self.evaluating_thread.is_alive():
+            self.evaluating_thread = threading.current_thread()
         from mathics.core.convert.expression import to_expression
         from mathics.core.expression import Expression
         from mathics.core.rules import RewriteRule
@@ -489,6 +496,9 @@ class Evaluation:
         finally:
             self.stop()
             self.deadline = None
+            # A Ctrl-C that came too late for this evaluation to take it
+            # must not open the interrupt menu in the next one.
+            self.interrupt_request = None
             # $Line could have changed during the evaluation.
             line_no = self.definitions.get_line_no()
             line_no += 1
@@ -710,7 +720,7 @@ class Evaluation:
         if self.stopped:
             raise TimeoutInterrupt
         interrupt_request = self.interrupt_request
-        if interrupt_request is not None:
+        if interrupt_request is not None and threading.current_thread() is self.evaluating_thread:
             self.interrupt_request = None
             interrupt_request(sys._getframe(1))
 
