@@ -245,12 +245,12 @@ class BaseElement(KeyComparable, ABC):
         else:
             return (self,)
 
-    def get_string_value(self) -> Optional[str]:
+    def get_string_value(self) -> str | None:
         return None
 
     def has_form(
         self,
-        heads: Iterable["Symbol"] | "Symbol",
+        heads: Union[Iterable["Symbol"], "Symbol"],
         *element_counts: int | None,
     ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
