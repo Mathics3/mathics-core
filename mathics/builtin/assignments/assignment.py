@@ -18,7 +18,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, SymbolNull
-from mathics.core.systemsymbols import SymbolFailed
+from mathics.core.systemsymbols import SymbolFailed, SymbolSequence
 from mathics.eval.assignments import eval_assign
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
@@ -147,6 +147,15 @@ class Set(InfixOperator):
         eval_assign(self.get_name(), lhs, rhs, evaluation)
         return rhs
 
+    def eval_sequence(self, lhs, rhs, evaluation):
+        "Set[lhs_, rhs___]"
+        # No value, or more than one, as when a value comes from a
+        # pattern variable x___: as in WMA, the value is the sequence of
+        # them; Set[x] gives x the value Sequence[].
+        value = Expression(SymbolSequence, *rhs.get_sequence())
+        eval_assign(self.get_name(), lhs, value, evaluation)
+        return value
+
 
 class SetDelayed(Set):
     """
@@ -227,6 +236,17 @@ class SetDelayed(Set):
         "lhs_ := rhs_"
 
         if eval_assign(self.get_name(), lhs, rhs, evaluation):
+            return SymbolNull
+
+        return SymbolFailed
+
+    def eval_sequence(
+        self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
+    ) -> Symbol:
+        "SetDelayed[lhs_, rhs___]"
+        # As in Set: no value, or more than one, give a Sequence.
+        value = Expression(SymbolSequence, *rhs.get_sequence())
+        if eval_assign(self.get_name(), lhs, value, evaluation):
             return SymbolNull
 
         return SymbolFailed

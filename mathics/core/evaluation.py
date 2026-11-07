@@ -18,6 +18,7 @@ from mathics.core.interrupt import (
     BreakInterrupt,
     ContinueInterrupt,
     ReturnInterrupt,
+    TimeConstrainedTimeout,
     TimeoutInterrupt,
     WLThrowInterrupt,
 )
@@ -341,6 +342,11 @@ class Evaluation:
                 # Clear shell interrupt if that exists.
                 self.exc_result = SymbolAborted
             except AbortInterrupt:  # , error:
+                self.exc_result = SymbolAborted
+            except TimeConstrainedTimeout:
+                # A TimeConstrained turns its own timeout into its failure
+                # expression, so none should get here. Should one slip
+                # through, the input is aborted rather than the session.
                 self.exc_result = SymbolAborted
             except RecursionError:
                 # Python ran out of stack before $RecursionLimit was
