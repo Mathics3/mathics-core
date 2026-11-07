@@ -498,7 +498,7 @@ class Derivative(PostfixOperator, SympyFunction):
         """Derivative[n__Integer][True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]/; True"""
         # Conditionals always come first...
         # Prevents the evaluation for True, False, and other Locked symbols
-        # as function names. This produces a recursion error in the evaluation rule for Derivative.
+        # as function names. This causes a recursion error in the Derivative evaluation rule.
         # See
         # https://github.com/Mathics3/mathics-core/issues/971#issuecomment-1902814462
         # in issue #971
@@ -669,7 +669,7 @@ class _BaseFinder(Builtin):
             evaluation.message(self.get_name(), "sym", x, 2)
             return
 
-        # Now, get the explicit form of f, depending of x
+        # Now, get the explicit form of f, depending on x.
         # keeping x without evaluation (Like inside a "Block[{x},f])
         f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
         # If after evaluation, we get an "Equal" expression,
@@ -1019,11 +1019,11 @@ class Integrate(SympyFunction):
     >> Integrate[1, {x, Infinity, 0}]
      = Integrate[1, {x, Infinity, 0}]
 
-    Here how is an example of converting integral equation to TeX:
+    Here is an example of converting an integral equation to TeX:
     >> Integrate[f[x^2], {x, a, b}] // TeXForm
      = \int_a^b f\left(x^2\right) \, dx
 
-    Sometimes there is a loss of precision during integration.
+    Sometimes integration loses precision.
     You can check the precision of your result with the following sequence \
     of commands.
     >> Integrate[Abs[Sin[phi]], {phi, 0, 2Pi}] // N
@@ -1219,7 +1219,7 @@ class Integrate(SympyFunction):
                 result = Expression(SymbolConditionalExpression, *(cases.elements))
             elif isinstance(result._head, Symbol):
                 # FIXME: there is a bug in from_sympy which is leaving an integer
-                # untranslated. Fix this and we can use Expression()
+                # untranslated. Fix this, and we can use Expression()
                 result = to_expression(result._head, cases, default)
             else:
                 raise NotImplementedError
@@ -1373,9 +1373,9 @@ class NIntegrate(Builtin):
 
     """
 
-    # ## The Following tests fails if sympy is not installed.
+    # ## The Following tests fail if SymPy is not installed.
     # >> Table[1./NIntegrate[x^k,{x,0,1},Tolerance->1*^-6], {k,0,6}]
-    # : The specified method failed to return a number. Falling back into the internal evaluator.
+    # : The specified method failed to return a number. Falling back to the internal evaluator.
     # = {1., 2., 3., 4., 5., 6., 7.}
 
     # >> NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance->1.*^-4]
@@ -1883,7 +1883,7 @@ class SeriesCoefficient(Builtin):
       <dd>Find the ($x$-$x_0$)^n in the expansion of $f$ about the point $x$=$x_0$.
     </dl>
 
-    First we list 5 terms of a series:
+    First, we list 5 terms of a series:
     >> Series[Exp[Sin[x]], {x, 0, 5}]
      = 1 + x + x ^ 2 / 2 - x ^ 4 / 8 - x ^ 5 / 15 + O[x] ^ 6
 
@@ -2019,7 +2019,7 @@ class SeriesData(Builtin):
 
         if nonzeroidx_left == 0 and nonzeroidx_right == 0:
             return
-        # if the lower order coeffs vanishes, moves xmin and xmax.
+        # If the lower-order coefficients vanish, move xmin and xmax.
         if nonzeroidx_left:
             nummin = Integer(nummin.int_value + nonzeroidx_left)
         if nonzeroidx_right:
@@ -2531,7 +2531,7 @@ class Solve(Builtin):
                 evaluation.message("Solve", "ivar", vars_original)
 
 
-# Auxiliary routines. Maybe should be moved to another module.
+# FIXME: Auxiliary routines. This should be moved to another module.
 
 
 def is_zero(
