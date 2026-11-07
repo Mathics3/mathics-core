@@ -271,7 +271,7 @@ def test_matchq(str_expr, msgs, str_expected, fail_msg):
         (
             "Order[1.2, 1]",
             "-1",
-            "Numeric greater than comparison between Real and Integer",
+            "Numeric greater-than comparison between Real and Integer",
         ),
         ("Order[F[2], A[2]]", "-1", "Function ordering in function name"),
         (
