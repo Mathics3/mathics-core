@@ -32,9 +32,9 @@ jobs:
           # bash -x admin-tools/make-JSON-tables.sh
           # cd ..
 
-      - name: Install Mathics3 with Cython
+      - name: Install Mathics3 with Cython and full dependencies
         run: |
-          make develop-cython
+          make develop-full-cython
       - name: Test Mathics
         run: |
           make -j3 check

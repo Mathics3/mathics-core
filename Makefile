@@ -88,11 +88,9 @@ develop-full:
 develop-cython:
 	$(PIP) install --no-build-isolation -e .[dev,cython]
 
-
 #: Set up to run from the source tree with full dependencies and Cython
 develop-full-cython:
 	$(PIP) install --no-build-isolation -e .[dev,full,cython]
-
 
 #: Make distribution: wheels, eggs, tarball
 dist:
