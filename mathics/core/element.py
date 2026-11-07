@@ -279,13 +279,13 @@ class BaseElement(KeyComparable, ABC):
         raise NotImplementedError
 
     # FIXME: this method makes sense as a method on (compound) Expresssion.
-    # It would be good narrow this method that class and subclass only.
+    # It would be good to narrow this method to that class and subclass only.
     def is_free(self, form, evaluation) -> bool:
         """
         Returns true if no subexpression in self matches `form`.
-        This is method is used in FreeQ.
+        This method is used in FreeQ.
         """
-        # That we have to import below or get a circular import, is an indication that this method is
+        # That we have to import below or get a circular import is an indication that this method is
         # in the wrong place!
         from mathics.eval.test import item_is_free
 
@@ -335,7 +335,7 @@ class EvalMixin:
     @property
     def is_literal(self) -> bool:
         """
-        True if the value can't change, i.e. a value is set and it does not
+        True if the value can't change, i.e. a value is set, and it does not
         depend on definition bindings. That is why, in contrast to
         `is_uncertain_final_definitions()`, we don't need a `definitions`
         parameter.
