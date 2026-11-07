@@ -1,5 +1,5 @@
 """
-Implementation of builtin optimizers.
+Implementation of built-in numeric function optimizers.
 """
 
 from typing import Final
@@ -19,7 +19,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
+from mathics.core.expression import Express
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.number import is_numeric
 from mathics.core.symbols import BaseElement, SymbolPlus, SymbolTimes, SymbolTrue
@@ -263,7 +263,7 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
 def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     """
-    Look for a root of a f: R->R using the Newton's method.
+    Look for a root of a f: R->R using Newton's method.
     """
     absf = abs(f)
     df = opts["System`Jacobian"]
@@ -294,7 +294,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
 
     def new_seed():
         """
-        looks for a new starting point, based on how close we are from the target.
+        Look for a new starting point, based on how close we are to the target.
         """
         x1 = eval_N(Integer2 * x0, evaluation)
         x2 = eval_N(x0 / Integer3, evaluation)
@@ -341,13 +341,13 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
             evaluation.message("FindRoot", "nnum", x, x0)
             raise ValueError()
 
-        # Check convergency:
+        # Check convergence:
         new_currval = absf.replace_vars({x_name: x1}).evaluate(evaluation)
         if is_zero(new_currval, acc_goal, prec_goal, evaluation):
             return x1, True
 
-        # This step tries to ensure that the new step goes forward to the convergency.
-        # If not, tries to restart in a another point closer to x0 than x1.
+        # This step tries to ensure that the new step goes forward to convergence.
+        # If not, tries to restart at another point closer to x0 than x1.
         if decreasing(new_currval, currval):
             x0, currval = new_seed()
             count = count + 1
@@ -384,7 +384,7 @@ def is_zero(
     evaluation: Evaluation,
 ) -> bool:
     """
-    Check if val is zero upto the precision and accuracy goals
+    Check if val is zero up to the precision and accuracy goals.
     """
     if not isinstance(val, Number):
         val = eval_N(val, evaluation)
@@ -404,7 +404,7 @@ def is_zero(
 
 
 def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
-    """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
+    """Determine epsilon  from a reference value, and from the accuracy and the precision goals."""
     acc_goal, prec_goal, maxit = get_accuracy_prec_and_maxit(options, evaluation)
     eps: Real = Real(1e-10)
     if not (acc_goal or prec_goal):
@@ -417,7 +417,7 @@ def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
     return eps
 
 
-# comment @mmatera: I moved this method here, because it is going to be used in more than one place
+# comment @mmatera: I moved this method here because it is going to be used in more than one place
 # and I didn't find a better place for it.
 
 
@@ -426,11 +426,11 @@ def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation") -> tuple:
     Looks at an opts dictionary and tries to determine the numeric values of
     Accuracy and Precision goals. If not available, returns None.
     """
-    # comment @mmatera: I fix the default value for Accuracy
+    # comment @mmatera: I fixed the default value for Accuracy
     # and Precision goals to 12 because it ensures that
-    # the results of the tests coincides with WMA upto
+    # the results of the tests coincide with WMA up to
     # 6 digits. In any case, probably the default value should be
-    # determined inside the methods that implements the specific
+    # determined inside the methods that implement the specific
     # solvers.
 
     def to_real_or_none(value: Real | None) -> Real | None:
