@@ -300,12 +300,12 @@ def eval_equality_operator(
 
 
 def numerify_args(elements, evaluation: Evaluation) -> list | tuple:
-    """Processes elements into a tuple or list for comparison."""
+    """Process elements into a tuple or list for comparison."""
     element_sequence = elements.get_sequence()
     all_numeric = all(is_inexact(element) for element in element_sequence)
 
     if all_numeric and any(not isinstance(item, Number) for item in element_sequence):
-        # All elements are numeric but they are not all numbers.
+        # All elements are numeric, but they are not all numbers.
         # Here, apply N[] (or eval_N()).
         n_items = []
         for item in element_sequence:
