@@ -111,10 +111,13 @@ class GeneralVariable:
     as general expressions: by head, then length, then elements.
     """
 
-    __slots__ = ("expr", "key")
+    # Only the order of the expression is kept, not the expression: the
+    # key is cached in the expression (Expression.element_order), and a
+    # reference back to it would make every such expression a reference
+    # cycle, freed only by the cyclic garbage collector.
+    __slots__ = ("key",)
 
-    def __init__(self, expr, key: tuple):
-        self.expr = expr
+    def __init__(self, key: tuple):
         self.key = key
 
     def __hash__(self) -> int:
@@ -132,12 +135,12 @@ class GeneralVariable:
         return self.key > other.key
 
 
-def general_variable(expr, key: tuple) -> tuple:
+def general_variable(key: tuple) -> tuple:
     """
-    The variable key of the general expression ``expr``, whose order as
-    a general expression is ``key``; see ``wma_symbol_sort_key``.
+    The variable key of a general expression whose order as a general
+    expression is ``key``; see ``wma_symbol_sort_key``.
     """
-    return (1, GeneralVariable(expr, key))
+    return (1, GeneralVariable(key))
 
 
 class Monomial:

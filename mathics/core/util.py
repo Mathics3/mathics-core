@@ -71,6 +71,40 @@ def strip_string_quotes(s: str) -> str:
     return s[1:-1] if len(s) >= 2 and s[0] == s[-1] == '"' else s
 
 
+def _decide_subsets(
+    included,
+    chosen: Tuple[Any, ...],
+    not_chosen: Tuple[Any, ...],
+    rest: Tuple[Any, ...],
+    count: int,
+) -> Generator[Tuple[Tuple[Any, ...], Tuple[Any, ...]], None, None]:
+    """
+    Yield the ways to choose ``count`` more items of ``rest``, for
+    ``subsets``.
+
+    This is a module function and not a closure in ``subsets``: a
+    recursive closure refers to itself through its cell, so each call
+    of ``subsets`` would leave a reference cycle for the garbage
+    collector.
+    """
+    if count < 0 or len(rest) < count:
+        return
+    if count == 0:
+        yield chosen, tuple(chain(not_chosen, rest))
+    elif len(rest) == count:
+        if included is None or all(item in included for item in rest):
+            yield tuple(chain(chosen, rest)), not_chosen
+    elif rest:
+        item = rest[0]
+        if included is None or item in included:
+            yield from _decide_subsets(
+                included, chosen + (item,), not_chosen, rest[1:], count - 1
+            )
+        yield from _decide_subsets(
+            included, chosen, not_chosen + (item,), rest[1:], count
+        )
+
+
 def subsets(
     items, min: int, max: Optional[int], included=None, less_first=False
 ) -> SUBSETS_GENERATOR_TYPE:
@@ -134,33 +168,16 @@ def subsets(
     else:
         lengths = list(range(max, min - 1, -1))
 
-    def decide(
-        chosen: Tuple[Any, ...],
-        not_chosen: Tuple[Any, ...],
-        rest: Tuple[Any, ...],
-        count: int,
-    ) -> Generator[Tuple[Tuple[Any, ...], Tuple[Any, ...]], None, None]:
-        if count < 0 or len(rest) < count:
-            return
-        if count == 0:
-            yield chosen, tuple(chain(not_chosen, rest))
-        elif len(rest) == count:
-            if included is None or all(item in included for item in rest):
-                yield tuple(chain(chosen, rest)), not_chosen
-        elif rest:
-            item = rest[0]
-            if included is None or item in included:
-                for set in decide(chosen + (item,), not_chosen, rest[1:], count - 1):
-                    yield set
-            for set in decide(chosen, not_chosen + (item,), rest[1:], count):
-                yield set
-
     for length in lengths:
-        for chosen, not_chosen in decide(EMPTY_TUPLE, EMPTY_TUPLE, items, length):
+        for chosen, not_chosen in _decide_subsets(
+            included, EMPTY_TUPLE, EMPTY_TUPLE, items, length
+        ):
             yield chosen, (EMPTY_TUPLE, not_chosen)
 
     if add_empty:
-        for chosen, not_chosen in decide(EMPTY_TUPLE, EMPTY_TUPLE, items, 0):
+        for chosen, not_chosen in _decide_subsets(
+            included, EMPTY_TUPLE, EMPTY_TUPLE, items, 0
+        ):
             yield chosen, (EMPTY_TUPLE, not_chosen)
 
 

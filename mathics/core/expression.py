@@ -340,8 +340,8 @@ def _factor_variables(factor: BaseElement) -> list:
                 if variable is not None:
                     return [(variable, value)]
             if isinstance(base, Expression) and not is_numeric(base):
-                return [(general_variable(base, base._general_order()), value)]
-    return [(general_variable(factor, factor._general_order()), 1)]
+                return [(general_variable(base._general_order()), value)]
+    return [(general_variable(factor._general_order()), 1)]
 
 
 class Expression(BaseElement, NumericOperators, EvalMixin):
@@ -1119,7 +1119,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             for variable, exponent in _factor_variables(self):
                 exps[variable] = exps.get(variable, 0) + exponent
         else:
-            return {general_variable(self, self._general_order()): 1}, coefficient
+            return {general_variable(self._general_order()): 1}, coefficient
         if not exps:
             return None
         return exps, coefficient

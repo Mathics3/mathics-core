@@ -173,6 +173,8 @@ class BasePattern(ABC):
         pattern_object = pattern_objects.get(name)
         if pattern_object is not None:
             return pattern_object(expr, evaluation=evaluation)
+        if isinstance(expr, Symbol):
+            return SymbolPattern(expr, evaluation)
         if isinstance(expr, Atom):
             return AtomPattern(expr, evaluation)
         if isinstance(expr, Expression):
@@ -375,9 +377,6 @@ class AtomPattern(BasePattern):
     def __init__(self, expr: Atom, evaluation: Optional[Evaluation] = None) -> None:
         self.expr = expr
         self.atom = expr
-        if isinstance(expr, Symbol):
-            self.match = self.match_symbol  # type: ignore[method-assign]
-            self.get_match_candidates = self.get_match_symbol_candidates  # type: ignore[method-assign]
 
     def _build_pattern_sort_key(self) -> tuple:
         return BASIC_ATOM_PATTERN_SORT_KEY
@@ -394,22 +393,6 @@ class AtomPattern(BasePattern):
         if target_symbol is self.atom:
             return "ownvalues"
         return None
-
-    def match_symbol(
-        self,
-        expression: BaseElement,
-        pattern_context,
-    ):
-        """Match against a symbol"""
-        assert isinstance(expression, BaseElement)
-        if expression is self.atom:
-            pattern_context["yield_func"](pattern_context["vars_dict"], None)
-
-    def get_match_symbol_candidates(
-        self, elements: tuple, pattern_context: dict
-    ) -> tuple:
-        """Find the sub-tuple of elements that matches the pattern"""
-        return tuple((element for element in elements if element is self.atom))
 
     def match(self, expression: BaseElement, pattern_context: dict):
         """Try to match the pattern with the expression."""
@@ -449,6 +432,29 @@ class AtomPattern(BasePattern):
         return (
             self.atom.short_name if hasattr(self.atom, "short_name") else str(self.atom)
         )
+
+
+class SymbolPattern(AtomPattern):
+    """
+    A pattern that matches with a Symbol: Symbols are unique, so a
+    match is an identity check.
+
+    This is a subclass rather than bound methods assigned to the
+    instance in ``__init__``: such methods refer back to the instance,
+    and would make every pattern of a Symbol a reference cycle.
+    """
+
+    def match(self, expression: BaseElement, pattern_context: dict):
+        """Match against a symbol"""
+        assert isinstance(expression, BaseElement)
+        if expression is self.atom:
+            pattern_context["yield_func"](pattern_context["vars_dict"], None)
+
+    def get_match_candidates(
+        self, elements: Tuple[BaseElement], pattern_context: dict
+    ) -> tuple:
+        """Find the sub-tuple of elements that matches the pattern"""
+        return tuple((element for element in elements if element is self.atom))
 
 
 class ExpressionPattern(BasePattern):
