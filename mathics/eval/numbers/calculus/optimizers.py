@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 """
-Implementation of builtin optimizers.
+Implementation of built-in numeric function optimizers.
 """
-from typing import Optional
+
+from typing import Final
 
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
@@ -19,7 +19,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
+from mathics.core.expression import Express
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.number import is_numeric
 from mathics.core.symbols import BaseElement, SymbolPlus, SymbolTimes, SymbolTrue
@@ -33,6 +33,9 @@ from mathics.core.systemsymbols import (
     SymbolNone,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.testing_expressions import OPERATOR_TO_ARGUMENT_MAP, do_cmp
+
+SYMBOL_LESS_CMP: Final[tuple[int, int]] = OPERATOR_TO_ARGUMENT_MAP[SymbolLess]
 
 
 def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
@@ -97,7 +100,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         vals = [v for v in vals if isinstance(v[1], Number)]
         v0 = vals[0]
         for v in vals:
-            if Expression(SymbolLess, v[1], v0[1]).evaluate(evaluation) is SymbolTrue:
+            if do_cmp(v[1], v0[1]) in SYMBOL_LESS_CMP:
                 v0 = v
         return v0
 
@@ -147,6 +150,11 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         offset = eval_N(val_d1 / abs(val_d2), evaluation)
         x1 = eval_N(x0 - offset, evaluation)
         new_val = eval_N(f.replace_vars({x_name: x1}), evaluation)
+        # Note: We use Expression(...).eval() below rather than
+        # the underlying eval function
+        # eval_comparison_operator(SymbolLess, args, evaluation) so that if
+        # eval_N returns something that isn't a plain Number (a
+        # Complex or an unevaluated expression), the Expression(...).evaluate path could still decide via SymPy.
         if (
             Expression(SymbolLessEqual, new_val, curr_val).evaluate(evaluation)
             is SymbolTrue
@@ -255,7 +263,7 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
 def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     """
-    Look for a root of a f: R->R using the Newton's method.
+    Look for a root of a f: R->R using Newton's method.
     """
     absf = abs(f)
     df = opts["System`Jacobian"]
@@ -286,7 +294,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
 
     def new_seed():
         """
-        looks for a new starting point, based on how close we are from the target.
+        Look for a new starting point, based on how close we are to the target.
         """
         x1 = eval_N(Integer2 * x0, evaluation)
         x2 = eval_N(x0 / Integer3, evaluation)
@@ -333,13 +341,13 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
             evaluation.message("FindRoot", "nnum", x, x0)
             raise ValueError()
 
-        # Check convergency:
+        # Check convergence:
         new_currval = absf.replace_vars({x_name: x1}).evaluate(evaluation)
         if is_zero(new_currval, acc_goal, prec_goal, evaluation):
             return x1, True
 
-        # This step tries to ensure that the new step goes forward to the convergency.
-        # If not, tries to restart in a another point closer to x0 than x1.
+        # This step tries to ensure that the new step goes forward to convergence.
+        # If not, tries to restart at another point closer to x0 than x1.
         if decreasing(new_currval, currval):
             x0, currval = new_seed()
             count = count + 1
@@ -371,12 +379,12 @@ native_findroot_messages = {}
 
 def is_zero(
     val: BaseElement,
-    acc_goal: Optional[Real],
-    prec_goal: Optional[Real],
+    acc_goal: Real | None,
+    prec_goal: Real | None,
     evaluation: Evaluation,
 ) -> bool:
     """
-    Check if val is zero upto the precision and accuracy goals
+    Check if val is zero up to the precision and accuracy goals.
     """
     if not isinstance(val, Number):
         val = eval_N(val, evaluation)
@@ -396,7 +404,7 @@ def is_zero(
 
 
 def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
-    """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
+    """Determine epsilon  from a reference value, and from the accuracy and the precision goals."""
     acc_goal, prec_goal, maxit = get_accuracy_prec_and_maxit(options, evaluation)
     eps: Real = Real(1e-10)
     if not (acc_goal or prec_goal):
@@ -409,7 +417,7 @@ def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
     return eps
 
 
-# comment @mmatera: I moved this method here, because it is going to be used in more than one place
+# comment @mmatera: I moved this method here because it is going to be used in more than one place
 # and I didn't find a better place for it.
 
 
@@ -418,32 +426,36 @@ def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation") -> tuple:
     Looks at an opts dictionary and tries to determine the numeric values of
     Accuracy and Precision goals. If not available, returns None.
     """
-    # comment @mmatera: I fix the default value for Accuracy
+    # comment @mmatera: I fixed the default value for Accuracy
     # and Precision goals to 12 because it ensures that
-    # the results of the tests coincides with WMA upto
+    # the results of the tests coincide with WMA up to
     # 6 digits. In any case, probably the default value should be
-    # determined inside the methods that implements the specific
+    # determined inside the methods that implement the specific
     # solvers.
 
-    def to_real_or_none(value: Optional[Real]) -> Optional[Real]:
+    def to_real_or_none(value: Real | None) -> Real | None:
         if value is not None:
             value = eval_N(value, evaluation)
         if value is SymbolAutomatic:
             value = Real(12.0)
-        elif value is SymbolInfinity or MATHICS3_INFINITY == value:
-            value = None
-        elif not isinstance(value, Number):
+        elif (
+            value is SymbolInfinity
+            or MATHICS3_INFINITY == value
+            or not isinstance(value, Number)
+        ):
             value = None
         return value
 
-    def to_integer_or_none(value: Optional[Integer]) -> Optional[Integer]:
+    def to_integer_or_none(value: Integer | None) -> Integer | None:
         if value is not None:
             value = eval_N(value, evaluation)
         if value is SymbolAutomatic:
             value = Integer(100)
-        elif value is SymbolInfinity or MATHICS3_INFINITY == value:
-            value = None
-        elif not isinstance(value, Number):
+        elif (
+            value is SymbolInfinity
+            or MATHICS3_INFINITY == value
+            or not isinstance(value, Number)
+        ):
             value = None
         return value
 

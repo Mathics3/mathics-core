@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Unit tests for mathics.builtin.testing_expressions
 """
@@ -30,7 +29,7 @@ import pytest
     ],
 )
 def test_arg_errors(function_name, msg_fragment):
-    """ """
+    """Test argument error messages for mathics.builtin.testing_expression builtin functions"""
     check_arg_counts(function_name, msg_fragment)
 
 
@@ -164,14 +163,14 @@ def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
         ("Negative[ComplexInfinity]", None, "Negative[ComplexInfinity]", None),
         # Other directions: the sign test of the direction, as in WMA
         (
-            "{Positive[DirectedInfinity[1.]], Negative[DirectedInfinity[-1/2]],"
+            "{Positive[DirectedInfinity[1.]], Negative[DirectedInfinity[-1/2]],"  # noqa: ISC004
             " NonNegative[DirectedInfinity[Pi]], NonPositive[DirectedInfinity[-Sqrt[2]]]}",
             None,
             "{True, True, True, True}",
             None,
         ),
         (
-            "{Positive[DirectedInfinity[I]], Negative[DirectedInfinity[1 + I]],"
+            "{Positive[DirectedInfinity[I]], Negative[DirectedInfinity[1 + I]],"  # noqa: ISC004
             " NonNegative[DirectedInfinity[-I]], NonPositive[DirectedInfinity[I]]}",
             None,
             "{False, False, False, False}",
@@ -272,7 +271,7 @@ def test_matchq(str_expr, msgs, str_expected, fail_msg):
         (
             "Order[1.2, 1]",
             "-1",
-            "Numeric greater than comparison between Real and Integer",
+            "Numeric greater-than comparison between Real and Integer",
         ),
         ("Order[F[2], A[2]]", "-1", "Function ordering in function name"),
         (
@@ -389,6 +388,32 @@ def test_order(str_expr: str, str_expected: str, assert_fail_msg: str):
 )
 def test_canonical_order(str_expr: str, str_expected: str, assert_fail_msg: str):
     """The canonical order of sums, symbols and monomials, as in WMA 15."""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        hold_expected=True,
+        failure_message=assert_fail_msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "assert_fail_msg"),
+    [
+        (None, None, None),
+        (
+            "Equal[1., 1.+8.*^-15, 1.+16.*^-15]",
+            "False",
+            "Difference is within the range of relative precision",
+        ),
+        (
+            "Equal[1., 1.+8.*^-100, 1.+16.*^-100]",
+            "True",
+            "Difference is not within the range of relative precision",
+        ),
+    ],
+)
+def test_equal(str_expr: str, str_expected: str, assert_fail_msg: str):
+    """Test Equal"""
     check_evaluation(
         str_expr,
         str_expected,

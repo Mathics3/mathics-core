@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
 """
 Equality and Inequality
 """
 
 from abc import ABC
-from typing import Any, Final, Literal, Optional
+from typing import Any, Final
 
 import sympy
 
 from mathics.builtin.numbers.constants import mp_convert_constant
-from mathics.core.atoms import COMPARE_PREC, Number, String
+from mathics.core.atoms import COMPARE_PREC, String
 from mathics.core.attributes import (
     A_FLAT,
     A_NUMERIC_FUNCTION,
@@ -18,40 +17,33 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.builtin import Builtin, InfixOperator, SympyFunction
-from mathics.core.convert.expression import to_numeric_args
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY, MATHICS3_NEG_INFINITY
 from mathics.core.number import dps, is_inexact
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
+from mathics.core.symbols import (
+    BooleanType,
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolTrue,
+)
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolDirectedInfinity,
-    SymbolEqual,
-    SymbolGreater,
-    SymbolGreaterEqual,
     SymbolInequality,
-    SymbolLess,
-    SymbolLessEqual,
     SymbolMaxExtraPrecision,
-    SymbolUnequal,
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
-from mathics.eval.testing_expressions import do_cmp, do_cplx_equal, is_number
-
-# An annotation type for any number of Literal argument counts -1, 0, 1.
-# In reality we'll have one or two of these, but we use elipsis anyway
-ComparisonTuple = tuple[Literal[-1, 0, 1], ...]
-
-OPERATOR_TO_ARGUMENT_MAP: Final[dict[Symbol, ComparisonTuple]] = {
-    SymbolLess: (-1,),
-    SymbolLessEqual: (-1, 0),
-    SymbolEqual: (0,),
-    SymbolGreaterEqual: (0, 1),
-    SymbolGreater: (1,),
-    SymbolUnequal: (-1, 1),
-}
+from mathics.eval.testing_expressions import (
+    OPERATOR_TO_ARGUMENT_MAP,
+    do_cmp,
+    eval_comparison_operator,
+    eval_equality_operator,
+    get_gt_pairs,
+    is_number,
+)
 
 
 class _InequalityOperator(InfixOperator, ABC):
@@ -63,31 +55,6 @@ class _InequalityOperator(InfixOperator, ABC):
 
     grouping = "NonAssociative"
 
-    @staticmethod
-    def numerify_args(elements, evaluation: Evaluation) -> list | tuple:
-        """Processes elements into a tuple or a list, so that the
-        caller can compare the returned tuple or list.
-        """
-        element_sequence = elements.get_sequence()
-        all_numeric = all(is_inexact(element) for element in element_sequence)
-
-        if all_numeric and any(
-            not isinstance(item, Number) for item in element_sequence
-        ):
-            # All elements are numeric but they are not all numbers.
-            # Here, apply N[] (or eval_N()).
-            items = element_sequence
-            n_items = []
-            for item in items:
-                if not isinstance(item, Number):
-                    item = eval_N(item, evaluation, SymbolMaxExtraPrecision)
-                n_items.append(item)
-            return n_items
-
-        # An element is not numeric or is not in the Number class.
-        # Here, we rely on to_numeric_args to do the right thing.
-        return to_numeric_args(elements, evaluation)
-
 
 class _ComparisonOperator(_InequalityOperator, ABC):
     """
@@ -95,30 +62,9 @@ class _ComparisonOperator(_InequalityOperator, ABC):
     chain e.g. a < b < c compares a < b and b < c.
     """
 
-    def eval(self, elements, evaluation: Evaluation):
+    def eval(self, elements, evaluation: Evaluation) -> BooleanType | None:
         "%(name)s[elements___]"
-        elements_sequence = elements.get_sequence()
-        if len(elements_sequence) <= 1:
-            return SymbolTrue
-        elements = self.numerify_args(elements, evaluation)
-        # FIXME: perhaps in the future we'll be able to go more directly from self,
-        # (e.g., mathics.builtin.testing_expressions.equality_inequality.Less)
-        # to its corresponding Symbol name. For now, though we have to go through its name.
-        wanted = OPERATOR_TO_ARGUMENT_MAP[Symbol(self.get_name())]
-        if isinstance(elements[-1], String):
-            return None
-        for i in range(len(elements) - 1):
-            x = elements[i]
-            if isinstance(x, String):
-                return None
-            y = elements[i + 1]
-            c = do_cmp(x, y)
-            if c is None:
-                return
-            elif c not in wanted:
-                return SymbolFalse
-            assert c in wanted
-        return SymbolTrue
+        return eval_comparison_operator(Symbol(self.get_name()), elements, evaluation)
 
 
 class _EqualityOperator(_InequalityOperator, ABC):
@@ -127,13 +73,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
     chain e.g. a == b == c compares a == b and b == c.
     """
 
-    @staticmethod
-    def get_pairs(args):
-        for i in range(len(args)):
-            for j in range(i):
-                yield (args[i], args[j])
-
-    def expr_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
+    def expr_equal(self, lhs, rhs, max_extra_prec=None) -> bool | None:
         if rhs is lhs:
             return True
         if isinstance(rhs, Expression):
@@ -154,7 +94,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
                 return None
         return True
 
-    def infty_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
+    def infty_equal(self, lhs, rhs, max_extra_prec=None) -> bool | None:
         if (
             lhs.get_head() is not SymbolDirectedInfinity
             or rhs.get_head() is not SymbolDirectedInfinity
@@ -182,7 +122,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
         """
         return bool(value)
 
-    def sympy_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
+    def sympy_equal(self, lhs, rhs, max_extra_prec=None) -> bool | None:
         try:
             lhs_sympy = lhs.to_sympy(evaluate=True, prec=COMPARE_PREC)
             rhs_sympy = rhs.to_sympy(evaluate=True, prec=COMPARE_PREC)
@@ -220,7 +160,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
         else:
             return None
 
-    def equal2(self, lhs: Any, rhs: Any, max_extra_prec=None) -> Optional[bool]:
+    def equal2(self, lhs: Any, rhs: Any, max_extra_prec=None) -> bool | None:
         """
         Two-argument Equal[]
         """
@@ -231,7 +171,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
             if result is not None:
                 return result
         # TODO: Check $Assumptions
-        # Still we didn't have a result. Try with the following
+        # Still we didn't have a result. Try the following
         # tests
         other_tests = (self.infty_equal, self.expr_equal, self.sympy_equal)
         for test in other_tests:
@@ -240,28 +180,17 @@ class _EqualityOperator(_InequalityOperator, ABC):
                 return c
         return None
 
-    def eval(self, elements, evaluation: Evaluation):
+    def eval(self, elements, evaluation: Evaluation) -> BooleanType | None:
         "%(name)s[elements___]"
-        elements_sequence = elements.get_sequence()
-        n = len(elements_sequence)
-        if n <= 1:
-            return SymbolTrue
-        # The test of ExactNumberQ, made directly: building and evaluating
-        # ExactNumberQ[arg] cost more than the comparison itself.
-        if not all(
-            isinstance(arg, Number) and not arg.is_inexact for arg in elements_sequence
-        ):
-            return self.eval_other(elements, evaluation)
-        args = self.numerify_args(elements, evaluation)
-        for x, y in self.get_pairs(args):
-            c = do_cplx_equal(x, y)
-            if c is None:
-                return
-            if not self.operator_sense(c):
-                return SymbolFalse
-        return SymbolTrue
+        return eval_equality_operator(
+            Symbol(self.get_name()),
+            elements,
+            evaluation,
+            eval_other=self.eval_other,
+            operator_sense=self.operator_sense,
+        )
 
-    def eval_other(self, args, evaluation: Evaluation):
+    def eval_other(self, args, evaluation: Evaluation) -> BooleanType:
         "%(name)s[args___?(!ExactNumberQ[#]&)]"
 
         args = args.get_sequence()
@@ -273,7 +202,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
             args = [
                 item if is_inexact(item) else eval_N(item, evaluation) for item in args
             ]
-        for x, y in self.get_pairs(args):
+        for x, y in get_gt_pairs(args):
             c = self.equal2(x, y, max_extra_prec)
             if c is None:
                 return
@@ -338,7 +267,7 @@ class _MinMax(SympyFunction):
 
 class _SympyComparison(SympyFunction):
     def to_sympy(self, expr, **kwargs):
-        to_sympy = super(_SympyComparison, self).to_sympy
+        to_sympy = super().to_sympy
         if len(expr.elements) > 2:
 
             def pairs(elements):
@@ -388,14 +317,14 @@ class Between(Builtin):
 
     attributes = A_PROTECTED
 
-    rules = {
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+    rules: Final[dict[str, str]] = {
         "Between[x_, {min_, max_}]": "min <= x <= max",  # FIXME add error checking
         "Between[x_, ranges__List]": "Module[{range},Do[If[Between[x,range], Return[True]],{range, {ranges}}]===True]",
         "Between[range_List][x_]": "Between[x, range]",  # operator form
     }
 
-    eval_error = Builtin.generic_argument_error
-    expected_args = (1, 2)
     summary_text = "test if value or values are in range"
 
 
@@ -425,7 +354,7 @@ class BooleanQ(Builtin):
 
     eval_error = Builtin.generic_argument_error
     expected_args = 1
-    rules = {
+    rules: Final[dict[str, str]] = {
         "BooleanQ[expr_]": "If[expr, True, True, False]",
     }
     summary_text = "test whether the expression evaluates to a boolean constant"
@@ -450,7 +379,7 @@ class Equal(_EqualityOperator, _SympyComparison):
 
         For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
       <dt>'$x$ == $y$ == $z$ == ...'
-      <dd> express a chain of equalities.
+      <dd>express a chain of equalities.
     </dl>
 
     Numerical Equalities:
@@ -543,7 +472,7 @@ class Equal(_EqualityOperator, _SympyComparison):
     >> g[1] == g[2] <= g[3]
      = g[1] ⩵ g[2] ∧ g[2] ≤ g[3]
 
-    'Equal' with no parameter or an empty list is 'True':
+    'Equal' with no parameters or an empty list is 'True':
     >> Equal[] == True
      = True
 
@@ -558,11 +487,6 @@ class Equal(_EqualityOperator, _SympyComparison):
     grouping = "None"
     summary_text = "numerical equality"
     sympy_name = "Eq"
-
-    @staticmethod
-    def get_pairs(args):
-        for i in range(len(args) - 1):
-            yield (args[i], args[i + 1])
 
     @staticmethod
     def operator_sense(value):
@@ -635,7 +559,7 @@ class Inequality(Builtin):
      = False
     """
 
-    messages = {
+    messages: Final[dict[str, str]] = {
         "ineq": (
             "Inequality called with `` arguments; the number of "
             "arguments is expected to be an odd number >= 3."
@@ -797,7 +721,7 @@ class SameQ(_ComparisonOperator):
     </dl>
 
     <ul>
-      <li>'SameQ' requires exact correspondence between expressions, expect that \
+      <li>'SameQ' requires exact correspondence between expressions, except that \
            it still considers 'Real' numbers equal if they differ in their last \
            binary digit.
       <li>$e_1$ === $e_2$ === $e_3$ gives 'True' if all the $ei$'s are identical.
@@ -821,10 +745,10 @@ class SameQ(_ComparisonOperator):
 
     >> 2./9. === .2222222222222222`15.9546
      = True
-    The comparison consider just the lowest precision
+    The comparison considers just the lowest precision
     >> .2222222`6 === .2222`3
      = True
-    Notice the extra decimal in the rhs. Because the internal representation,
+    Notice the extra decimal in the rhs. Because of the internal representation,
     $0.222`3$ is not equivalent to $0.2222`3$:
     >> .2222222`6 === .222`3
      = False
@@ -869,7 +793,7 @@ class TrueQ(Builtin):
 
     eval_error = Builtin.generic_argument_error
     expected_args = 1
-    rules = {
+    rules: Final[dict[str, str]] = {
         "TrueQ[expr_]": "If[expr, True, False, False]",
     }
     summary_text = "test whether the expression evaluates to True"

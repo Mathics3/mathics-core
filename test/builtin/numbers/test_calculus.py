@@ -1,88 +1,65 @@
-# -*- coding: utf-8 -*-
 """
 Unit tests for mathics.builtins.numbers.calculus
 
-In partiuclar:
+In particular:
 
 FindRoot[], FindMinimum[], NFindMaximum[] tests
-
-
 """
 
+import functools
+import operator
 from test.helper import check_evaluation
-from typing import Optional
 
 import pytest
 
-from mathics.core.builtin import check_requires_list
+methods_findminimum = ["Automatic", "Newton", "brent", "golden"]
+generic_tests_for_findminimum = [
+    (
+        r"MatchQ[FindMinimum[Cos[x]^2, {x,1.}, {method}],{_Real,{x->_Real}}]",
+        r"True",
+        "",
+    ),
+    (
+        r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}, {method} ], {_Real,{x->_Real}}]",
+        r"True",
+        "",
+    ),
+]
 
-if check_requires_list(["scipy", "scipy.integrate"]):
-    methods_findminimum = ["Automatic", "Newton", "brent", "golden"]
-    generic_tests_for_findminimum = [
-        (
-            r"MatchQ[FindMinimum[Cos[x]^2, {x,1.}, {method}],{_Real,{x->_Real}}]",
-            r"True",
-            "",
-        ),
-        (
-            r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}, {method} ], {_Real,{x->_Real}}]",
-            r"True",
-            "",
-        ),
-    ]
-    tests_for_findminimum = sum(
+tests_for_findminimum = sum(
+    [
         [
+            (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2], None)
+            for tst in generic_tests_for_findminimum
+        ]
+        for method in methods_findminimum
+    ],
+    [
+        (
+            r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}, Method->Newton], {_Real,{x->_Real}}]",
+            r"True",
+            r"check message",
             [
-                (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2], None)
-                for tst in generic_tests_for_findminimum
-            ]
-            for method in methods_findminimum
-        ],
+                r"Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point."
+            ],
+        )
+    ],
+)
+methods_findroot = ["Automatic", "Newton", "Secant", "brenth"]
+generic_tests_for_findroot = [
+    (r"MatchQ[FindRoot[Cos[x+1.5], {x,.1}, {method}], {x->_Real}]", r"True", ""),
+]
+tests_for_findroot = functools.reduce(
+    operator.iadd,
+    [
         [
-            (
-                r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}, Method->Newton], {_Real,{x->_Real}}]",
-                r"True",
-                r"check message",
-                [
-                    r"Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point."
-                ],
-            )
-        ],
-    )
-    methods_findroot = ["Automatic", "Newton", "Secant", "brenth"]
-    generic_tests_for_findroot = [
-        (r"MatchQ[FindRoot[Cos[x+1.5], {x,.1}, {method}], {x->_Real}]", r"True", ""),
-    ]
-    tests_for_findroot = sum(
-        [
-            [
-                (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2])
-                for tst in generic_tests_for_findroot
-            ]
-            for method in methods_findroot
-        ],
-        [],
-    )
-
-else:
-    tests_for_findminimum = [
-        (
-            r"MatchQ[FindMinimum[Cos[x]^2, {x,1.}],{_Real,{x->_Real}}]",
-            r"True",
-            "",
-            None,
-        ),
-        (
-            r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}], {_Real,{x->_Real}}]",
-            r"True",
-            "",
-            None,
-        ),
-    ]
-    tests_for_findroot = [
-        (r"MatchQ[FindRoot[Cos[x+1.5], {x,.1}], {x->_Real}]", r"True", ""),
-    ]
-
+            (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2])
+            for tst in generic_tests_for_findroot
+        ]
+        for method in methods_findroot
+    ],
+    [],
+)
 
 tests_for_integrate = [
     (r"Integrate[Sec[x]*Tan[x],x]", "1 / Cos[x]", "issue #346"),
@@ -98,7 +75,7 @@ def test_findminimum(
     str_expr: str,
     str_expected: str,
     assert_fail_message: str,
-    expected_messages: Optional[list],
+    expected_messages: list | None,
 ):
     check_evaluation(
         str_expr, str_expected, assert_fail_message, expected_messages=expected_messages
