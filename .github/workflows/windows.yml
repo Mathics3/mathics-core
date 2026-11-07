@@ -15,16 +15,16 @@ jobs:
         os: [windows]
         # "make doctest" on MS Windows fails without showing much of a
         # trace of where things went wrong on Python before 3.11.
-        python-version: ['3.12']
+        python-version: ['3.15']
 
     # Setting the environment variable globally for all steps in this job
     env:
       MATHICS_CHARACTER_ENCODING: "ASCII"
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install OS dependencies
