@@ -1,3 +1,7 @@
+"""
+Evaluation routines for mathics.builtin.testing_expressions
+"""
+
 from collections.abc import Callable, Iterator, Sequence
 from typing import Final, Literal, TypeVar
 
@@ -42,7 +46,7 @@ from mathics.eval.nevaluator import eval_N
 T = TypeVar("T")
 
 # An annotation type for any number of Literal argument counts -1, 0, 1.
-# In reality we'll have one or two of these, but we use elipsis anyway
+# In reality we'll have one or two of these, but we use ellipsis anyway.
 ComparisonTuple = tuple[Literal[-1, 0, 1], ...]
 
 OPERATOR_TO_ARGUMENT_MAP: Final[dict[Symbol, ComparisonTuple]] = {
@@ -81,7 +85,7 @@ def do_cmp(x1, x2) -> int | None:
     # Use internal comparisons only for Real which is uses
     # WL's interpretation of equal (which allows for slop
     # in the least significant digit of precision), and use
-    # use sympy for everything else
+    # SymPy for everything else.
     if s1.is_Float and s2.is_Float:
         if x1 == x2:
             return 0
@@ -152,13 +156,13 @@ def expr_min(elements) -> Expression | int:
 
 
 def get_adjacent_pairs(args: Sequence[T]) -> Iterator[tuple[T, T]]:
-    """Yield all pairs, args[i, i+] where 0 <= i < len(args)"""
+    """Yield adjacent pairs: args[i], args[i + 1]."""
     for i in range(len(args) - 1):
         yield (args[i], args[i + 1])
 
 
-def get_lt_pairs(args: Sequence[T]) -> Iterator[tuple[T, T]]:
-    """Yield all pairs, args[i, j] where 0 <= i < j < len(args)"""
+def get_gt_pairs(args: Sequence[T]) -> Iterator[tuple[T, T]]:
+    """Yield all pairs, args[i, j] where 0 <= j < i < len(args)"""
     for i in range(len(args)):
         for j in range(i):
             yield (args[i], args[j])
@@ -236,10 +240,12 @@ def eval_comparison_operator(
     elements_sequence = elements.get_sequence()
     if len(elements_sequence) <= 1:
         return SymbolTrue
+
     elements = numerify_args(elements, evaluation)
     wanted = OPERATOR_TO_ARGUMENT_MAP[symbol]
     if isinstance(elements[-1], String):
         return None
+
     for i in range(len(elements) - 1):
         x = elements[i]
         if isinstance(x, String):
@@ -247,53 +253,66 @@ def eval_comparison_operator(
         y = elements[i + 1]
         c = do_cmp(x, y)
         if c is None:
-            return
-        elif c not in wanted:
+            return None
+        if c not in wanted:
             return SymbolFalse
     return SymbolTrue
 
 
 def eval_equality_operator(
-    eval_other: Callable, operator_sense: Callable, elements, evaluation: Evaluation
+    symbol: Symbol,
+    elements,
+    evaluation: Evaluation,
+    *,
+    eval_other: Callable | None = None,
+    operator_sense: Callable | None = None,
 ) -> BooleanType | None:
+    """
+    Standalone equality/inequality helper.
+
+    The symbol is passed explicitly so this function does not depend on a
+    particular _EqualityOperator instance. Instance-specific behavior is
+    supplied through the optional hooks when needed.
+    """
     elements_sequence = elements.get_sequence()
     n = len(elements_sequence)
     if n <= 1:
         return SymbolTrue
-    # The test of ExactNumberQ, made directly: building and evaluating
-    # ExactNumberQ[arg] cost more than the comparison itself.
+
+    if operator_sense is None:
+        operator_sense = bool
+
     if not all(
         isinstance(arg, Number) and not arg.is_inexact for arg in elements_sequence
     ):
-        return eval_other(elements, evaluation)
+        if eval_other is not None:
+            return eval_other(elements, evaluation)
+        return SymbolTrue
+
     args = numerify_args(elements, evaluation)
     for x, y in get_adjacent_pairs(args):
         c = do_cplx_equal(x, y)
         if c is None:
-            return
+            return None
         if not operator_sense(c):
             return SymbolFalse
     return SymbolTrue
 
 
 def numerify_args(elements, evaluation: Evaluation) -> list | tuple:
-    """Processes elements into a tuple or a list, so that the
-    caller can compare the returned tuple or list.
-    """
+    """Processes elements into a tuple or list for comparison."""
     element_sequence = elements.get_sequence()
     all_numeric = all(is_inexact(element) for element in element_sequence)
 
     if all_numeric and any(not isinstance(item, Number) for item in element_sequence):
         # All elements are numeric but they are not all numbers.
         # Here, apply N[] (or eval_N()).
-        items = element_sequence
         n_items = []
-        for item in items:
+        for item in element_sequence:
             if not isinstance(item, Number):
                 item = eval_N(item, evaluation, SymbolMaxExtraPrecision)
             n_items.append(item)
         return n_items
 
-    # An element is not numeric or is not in the Number class.
-    # Here, we rely on to_numeric_args to do the right thing.
+    # For mixed values, rely on to_numeric_args.
     return to_numeric_args(elements, evaluation)

@@ -41,7 +41,7 @@ from mathics.eval.testing_expressions import (
     do_cmp,
     eval_comparison_operator,
     eval_equality_operator,
-    get_lt_pairs,
+    get_gt_pairs,
     is_number,
 )
 
@@ -183,7 +183,11 @@ class _EqualityOperator(_InequalityOperator, ABC):
     def eval(self, elements, evaluation: Evaluation) -> BooleanType | None:
         "%(name)s[elements___]"
         return eval_equality_operator(
-            self.eval_other, self.operator_sense, elements, evaluation
+            Symbol(self.get_name()),
+            elements,
+            evaluation,
+            eval_other=self.eval_other,
+            operator_sense=self.operator_sense,
         )
 
     def eval_other(self, args, evaluation: Evaluation) -> BooleanType:
@@ -198,7 +202,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
             args = [
                 item if is_inexact(item) else eval_N(item, evaluation) for item in args
             ]
-        for x, y in get_lt_pairs(args):
+        for x, y in get_gt_pairs(args):
             c = self.equal2(x, y, max_extra_prec)
             if c is None:
                 return

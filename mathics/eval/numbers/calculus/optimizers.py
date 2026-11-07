@@ -2,7 +2,7 @@
 Implementation of builtin optimizers.
 """
 
-from typing import Optional
+from typing import Final
 
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
@@ -31,10 +31,11 @@ from mathics.core.systemsymbols import (
     SymbolLessEqual,
     SymbolLog,
     SymbolNone,
-    SymbolSequence,
 )
 from mathics.eval.nevaluator import eval_N
-from mathics.eval.testing_expressions import eval_comparison_operator
+from mathics.eval.testing_expressions import OPERATOR_TO_ARGUMENT_MAP, do_cmp
+
+SYMBOL_LESS_CMP: Final[tuple[int, int]] = OPERATOR_TO_ARGUMENT_MAP[SymbolLess]
 
 
 def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
@@ -99,8 +100,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         vals = [v for v in vals if isinstance(v[1], Number)]
         v0 = vals[0]
         for v in vals:
-            args = Expression(SymbolSequence, v[1], v0[1])
-            if eval_comparison_operator(SymbolLess, args, evaluation) is SymbolTrue:
+            if do_cmp(v[1], v0[1]) in SYMBOL_LESS_CMP:
                 v0 = v
         return v0
 
@@ -150,6 +150,11 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         offset = eval_N(val_d1 / abs(val_d2), evaluation)
         x1 = eval_N(x0 - offset, evaluation)
         new_val = eval_N(f.replace_vars({x_name: x1}), evaluation)
+        # Note: We use Expression(...).eval() below rather than
+        # the underlying eval function
+        # eval_comparison_operator(SymbolLess, args, evaluation) so that if
+        # eval_N returns something that isn't a plain Number (a
+        # Complex or an unevaluated expression), the Expression(...).evaluate path could still decide via SymPy.
         if (
             Expression(SymbolLessEqual, new_val, curr_val).evaluate(evaluation)
             is SymbolTrue
@@ -374,8 +379,8 @@ native_findroot_messages = {}
 
 def is_zero(
     val: BaseElement,
-    acc_goal: Optional[Real],
-    prec_goal: Optional[Real],
+    acc_goal: Real | None,
+    prec_goal: Real | None,
     evaluation: Evaluation,
 ) -> bool:
     """
@@ -428,25 +433,29 @@ def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation") -> tuple:
     # determined inside the methods that implements the specific
     # solvers.
 
-    def to_real_or_none(value: Optional[Real]) -> Optional[Real]:
+    def to_real_or_none(value: Real | None) -> Real | None:
         if value is not None:
             value = eval_N(value, evaluation)
         if value is SymbolAutomatic:
             value = Real(12.0)
-        elif value is SymbolInfinity or MATHICS3_INFINITY == value:
-            value = None
-        elif not isinstance(value, Number):
+        elif (
+            value is SymbolInfinity
+            or MATHICS3_INFINITY == value
+            or not isinstance(value, Number)
+        ):
             value = None
         return value
 
-    def to_integer_or_none(value: Optional[Integer]) -> Optional[Integer]:
+    def to_integer_or_none(value: Integer | None) -> Integer | None:
         if value is not None:
             value = eval_N(value, evaluation)
         if value is SymbolAutomatic:
             value = Integer(100)
-        elif value is SymbolInfinity or MATHICS3_INFINITY == value:
-            value = None
-        elif not isinstance(value, Number):
+        elif (
+            value is SymbolInfinity
+            or MATHICS3_INFINITY == value
+            or not isinstance(value, Number)
+        ):
             value = None
         return value
 

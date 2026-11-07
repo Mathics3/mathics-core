@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Calculus
 
@@ -8,13 +7,14 @@ is the study of shape and algebra is the study of generalizations of \
 arithmetic operations.
 """
 
+from collections.abc import Callable
 from itertools import product
-from typing import Callable, Optional
+from typing import Final
 
 import numpy as np
 import sympy
 
-import mathics.eval.tracing as tracing
+import mathics.eval.tracing as tracing  # noqa: PLR0402
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     Integer,
@@ -184,14 +184,14 @@ class D(SympyFunction):
     >> D[2x, 2x]
      = 0
     """
-    messages = {
+    messages: Final[dict[str, str]] = {
         "dvar": (
             "Multiple derivative specifier `1` does not have the form "
             "{variable, n}, where n is a non-negative machine integer."
         ),
     }
 
-    rules = {
+    rules: Final[dict[str, str]] = {
         # Basic rules (implemented in apply):
         #   "D[f_ + g_, x_?NotListQ]": "D[f, x] + D[g, x]",
         #   "D[f_ * g_, x_?NotListQ]": "D[f, x] * g + f * D[g, x]",
@@ -414,7 +414,7 @@ class Derivative(PostfixOperator, SympyFunction):
 
     attributes = A_N_HOLD_ALL
     default_formats = False
-    rules = {
+    rules: Final[dict[str, str]] = {
         "MakeBoxes[Derivative[n__Integer][f_], "
         "  form:StandardForm|TraditionalForm]": (
             r"SuperscriptBox[MakeBoxes[f, form], If[{n} === {2}, "
@@ -492,7 +492,7 @@ class Derivative(PostfixOperator, SympyFunction):
     summary_text = "symbolic and numerical derivative functions"
 
     def __init__(self, *args, **kwargs):
-        super(Derivative, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def eval_locked_symbols(self, n, **kwargs):
         """Derivative[n__Integer][True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]/; True"""
@@ -625,7 +625,7 @@ class _BaseFinder(Builtin):
             tuple[BaseElement, bool],
         ],
     ] = {}
-    messages = {
+    messages: Final[dict[str, str]] = {
         "snum": "Value `1` is not a number.",
         "nnum": "The function value is not a number at `1` = `2`.",
         "dsing": "Encountered a singular derivative at the point `1` = `2`.",
@@ -641,7 +641,7 @@ class _BaseFinder(Builtin):
         ),
     }
 
-    options = {
+    options: Final[dict[str, str]] = {
         "MaxIterations": "100",
         "Method": "Automatic",
         "AccuracyGoal": "Automatic",
@@ -685,9 +685,8 @@ class _BaseFinder(Builtin):
 
         # Determine the method
         method = options["System`Method"]
-        if isinstance(method, Expression):
-            if method.get_head() is SymbolList:
-                method = method.elements[0]
+        if isinstance(method, Expression) and method.get_head() is SymbolList:
+            method = method.elements[0]
         if isinstance(method, Symbol):
             method = method.get_name().split("`")[-1]
         elif isinstance(method, String):
@@ -812,24 +811,34 @@ class FindMinimum(_BaseFinder):
 
     <dl>
     <dt>'FindMinimum'[$f$, {$x$, $x_0$}]
-        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x_0$'.
+        <dd>searches for a numerical minimum of $f$, starting from $x$ = $x_0$.
     </dl>
 
     'FindMinimum' by default uses Newton\'s method, so the function of \
     interest should have a first derivative.
 
+     >> FindMinimum[Sin[x], {x, 1}]
+     = {-1., {x ⇾ -1.5708}}
+
+     An example using the Newtonian method where the first step is large and lands at a point \
+     where $f(x)$ is greater than its starting value:
+
+     >> FindMinimum[Sin[x], {x, 0.01}, Method->"Newton"]
+      = {-1., {x ⇾ -900.066}}
 
     >> FindMinimum[(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
      = {2., {x ⇾ 3.}}
+
     >> FindMinimum[10*^-30 *(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
      = {2., {x ⇾ 3.}}
-    >> FindMinimum[Sin[x], {x, 1}]
-     = {-1., {x ⇾ -1.5708}}
+
     >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}, Method->"Internal"];
+
     >> Quiet[FindMinimum[phi[x]-x,{x, 1.2}, Method->"Newton"]]
      = {-0.5, {x ⇾ 1.00001}}
+
     >> Clear[phi];
     For a not-so-well-behaved function, the result can be less accurate:
     >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
@@ -912,7 +921,7 @@ class FindRoot(_BaseFinder):
      = {x ⇾ 1.41421}
     """
 
-    rules = {
+    rules: Final[dict[str, str]] = {
         "FindRoot[lhs_ == rhs_, {x_, xs_}, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, {x, xs}, opt]",
         "FindRoot[lhs_ == rhs_, x__, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, x, opt]",
     }
@@ -1043,19 +1052,19 @@ class Integrate(SympyFunction):
     # = t / 2
     attributes = A_PROTECTED | A_READ_PROTECTED
 
-    options = {
+    options: Final[dict[str, str]] = {
         "Assumptions": "$Assumptions",
         "GenerateConditions": "Automatic",
         "PrincipalValue": "False",
     }
 
-    messages = {
+    messages: Final[dict[str, str]] = {
         "idiv": "Integral of `1` does not converge on `2`.",
         "ilim": "Invalid integration variable or limit(s).",
         "iconstraints": "Additional constraints needed: `1`",
     }
 
-    rules = {
+    rules: Final[dict[str, str]] = {
         "N[Integrate[f_, x__List]]": "NIntegrate[f, x]",
         "Integrate[list_List, x_]": "Integrate[#, x]& /@ list",
         "MakeBoxes[Integrate[f_, x_], form:StandardForm|TraditionalForm]": r"""RowBox[{"\[Integral]","\[InvisibleTimes]", MakeBoxes[f, form], "\[InvisibleTimes]",
@@ -1143,7 +1152,7 @@ class Integrate(SympyFunction):
             # TODO MaxExtraPrecision -> maxn
             sympy_result = sympy_result.evalf(dps(prec))
 
-        result: Optional[BaseElement] = from_sympy(sympy_result)
+        result: BaseElement | None = from_sympy(sympy_result)
         # If we obtain an atom (number or symbol)
         # just return...
         if isinstance(result, Atom):
@@ -1295,10 +1304,10 @@ class Limit(Builtin):
     eval_error = Builtin.generic_argument_error
     expected_args = (2, 3)
 
-    messages = {
+    messages: Final[dict[str, str]] = {
         "ldir": "Value of Direction -> `1` should be -1 or 1.",
     }
-    options = {
+    options: Final[dict[str, str]] = {
         "Direction": "1",
     }
 
@@ -1380,7 +1389,7 @@ class NIntegrate(Builtin):
     # >> NIntegrate[x * y,{x, 0, 1}, {y, 0, 1}]
     # = 0.25
 
-    messages = {
+    messages: Final[dict[str, str]] = {
         "bdmtd": "The Method option should be a built-in method name.",
         "inumr": (
             "The integrand `1` has evaluated to non-numerical "
@@ -1397,10 +1406,10 @@ class NIntegrate(Builtin):
         "cmpint": ("Integration over a complex domain is not " + "implemented yet"),
     }
 
-    methods = {
+    methods: Final[dict[str, str]] = {
         "Automatic": (None, False),
     }
-    options = {
+    options: Final[dict[str, str]] = {
         "Method": '"Automatic"',
         "Tolerance": "1*^-10",
         "Accuracy": "1*^-10",
@@ -1642,7 +1651,7 @@ class O_(Builtin):
     """
 
     name = "O"
-    rules = {
+    rules: Final[dict[str, str]] = {
         "O[x_Symbol]": "SeriesData[x, 0, {}, 1, 1, 1]",
     }
     summary_text = "symbolic representation of a higher-order series term"
@@ -1685,7 +1694,7 @@ class Root(SympyFunction):
      = Root[1 + 2 #1 + #1 ^ 5&, 2]
     """
 
-    messages = {
+    messages: Final[dict[str, str]] = {
         "nuni": "Argument `1` at position 1 is not a univariate polynomial function",
         "nint": "Argument `1` at position 2 is not an integer",
         "iidx": "Argument `1` at position 2 is out of bounds",
@@ -1834,7 +1843,7 @@ class Series(Builtin):
 
     """
 
-    messages = {
+    messages: Final[dict[str, str]] = {
         "icm": "Series in `1` to be combined have unequal expansion points `2` and `3`.",
         "serlim": "Series order specification `1` is not a machine-sized integer.",
         "sspec": "Series specification `1` is not a list with three elements.",
@@ -1904,7 +1913,7 @@ class SeriesCoefficient(Builtin):
     """
 
     attributes = A_PROTECTED
-    rules = {
+    rules: Final[dict[str, str]] = {
         "SeriesCoefficient[f_, {x_Symbol, x0_, n_Integer}]": "SeriesCoefficient[Series[f, {x, x0, n}], n]"
     }
     summary_text = "compute power series coefficient"
@@ -2359,7 +2368,7 @@ class Solve(Builtin):
      = {{x ⇾ -1}, {x ⇾ 1}}
     """
 
-    messages = {
+    messages: Final[dict[str, str]] = {
         "eqf": "`1` is not a well-formed equation.",
         "svars": 'Equations may not give solutions for all "solve" variables.',
     }
@@ -2367,7 +2376,7 @@ class Solve(Builtin):
     # FIXME: the problem with removing the domain parameter from the outside
     # is that we can't make use of this information inside
     # the evaluation method where it is may be needed.
-    rules = {
+    rules: Final[dict[str, str]] = {
         "Solve[eqs_, vars_, Complexes]": "Solve[eqs, vars]",
         "Solve[eqs_, vars_, Reals]": (
             "Cases[Solve[eqs, vars], {Rule[x_,y_?RealValuedNumberQ]}]"
@@ -2527,8 +2536,8 @@ class Solve(Builtin):
 
 def is_zero(
     val: BaseElement,
-    acc_goal: Optional[Real],
-    prec_goal: Optional[Real],
+    acc_goal: Real | None,
+    prec_goal: Real | None,
     evaluation: Evaluation,
 ) -> bool:
     """
