@@ -179,3 +179,53 @@ def test_evaluate_timeout(str_expr):
     assert [m.text for m in result.out] == ["Timeout reached."]
     # The next evaluation has no limit left over.
     assert session.evaluate_as_in_cli("Length[Table[i, {i, 10}]]").result == "10"
+
+
+@pytest.mark.parametrize(
+    ("setup", "str_expr"),
+    [
+        ("f[x_ /; slow[]] := matched", "f[1]"),
+        ("f[x_, y_ /; slow[]] := matched", "f[1, 2]"),
+        ("SetAttributes[f, Orderless]; f[x_, y_ /; slow[]] := matched", "f[1, 2]"),
+    ],
+    ids=["ordered", "ordered-two-elements", "orderless"],
+)
+def test_evaluate_timeout_inside_matching(setup, str_expr):
+    """A timeout that fires while a rule is being matched (here, inside a
+    slow Condition) aborts the evaluation. It is not taken for "no match":
+    the unevaluated expression must not become the result, Out[n] or the
+    value of an assignment."""
+    from test.helper import session
+
+    session.evaluate("ClearAll[f, slow, r]; slow[] := (Do[Null, {10^7}]; True)")
+    session.evaluate(setup)
+    try:
+        result = session.evaluate_as_in_cli(str_expr, timeout=0.3)
+        assert result.result == "$Aborted"
+        assert [m.text for m in result.out] == ["Timeout reached."]
+        out = session.evaluate_as_in_cli(f"Out[{result.line_no}]").result
+        assert out != str_expr, f"Out[{result.line_no}] holds the unmatched {out}"
+
+        result = session.evaluate_as_in_cli(f"r = {str_expr}", timeout=0.3)
+        assert result.result == "$Aborted"
+        assert session.evaluate_as_in_cli("r").result == "r"
+    finally:
+        session.evaluate("ClearAll[f, slow, r]")
+
+
+def test_timeconstrained_inside_matching():
+    """TimeConstrained gives its failure value when its time runs out while
+    a rule is being matched, as in WMA."""
+    from test.helper import session
+
+    try:
+        check_evaluation_as_in_cli(
+            "ClearAll[f, slow]; slow[] := (Do[Null, {10^7}]; True); "
+            "SetAttributes[f, Orderless]; f[x_, y_ /; slow[]] := matched; "
+            "{TimeConstrained[f[1, 2], 0.2, failed], TimeConstrained[f[1, 2], 0.2]}",
+            "{failed, $Aborted}",
+            "TimeConstrained during matching",
+            [],
+        )
+    finally:
+        session.evaluate("ClearAll[f, slow]")
