@@ -171,7 +171,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
             if result is not None:
                 return result
         # TODO: Check $Assumptions
-        # Still we didn't have a result. Try with the following
+        # Still we didn't have a result. Try the following
         # tests
         other_tests = (self.infty_equal, self.expr_equal, self.sympy_equal)
         for test in other_tests:
@@ -379,7 +379,7 @@ class Equal(_EqualityOperator, _SympyComparison):
 
         For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
       <dt>'$x$ == $y$ == $z$ == ...'
-      <dd> express a chain of equalities.
+      <dd>express a chain of equalities.
     </dl>
 
     Numerical Equalities:
@@ -472,7 +472,7 @@ class Equal(_EqualityOperator, _SympyComparison):
     >> g[1] == g[2] <= g[3]
      = g[1] ⩵ g[2] ∧ g[2] ≤ g[3]
 
-    'Equal' with no parameter or an empty list is 'True':
+    'Equal' with no parameters or an empty list is 'True':
     >> Equal[] == True
      = True
 
@@ -721,7 +721,7 @@ class SameQ(_ComparisonOperator):
     </dl>
 
     <ul>
-      <li>'SameQ' requires exact correspondence between expressions, expect that \
+      <li>'SameQ' requires exact correspondence between expressions, except that \
            it still considers 'Real' numbers equal if they differ in their last \
            binary digit.
       <li>$e_1$ === $e_2$ === $e_3$ gives 'True' if all the $ei$'s are identical.
@@ -745,10 +745,10 @@ class SameQ(_ComparisonOperator):
 
     >> 2./9. === .2222222222222222`15.9546
      = True
-    The comparison consider just the lowest precision
+    The comparison considers just the lowest precision
     >> .2222222`6 === .2222`3
      = True
-    Notice the extra decimal in the rhs. Because the internal representation,
+    Notice the extra decimal in the rhs. Because of the internal representation,
     $0.222`3$ is not equivalent to $0.2222`3$:
     >> .2222222`6 === .222`3
      = False
