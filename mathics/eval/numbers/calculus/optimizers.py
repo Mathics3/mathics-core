@@ -19,7 +19,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Express
+from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.number import is_numeric
 from mathics.core.symbols import BaseElement, SymbolPlus, SymbolTimes, SymbolTrue

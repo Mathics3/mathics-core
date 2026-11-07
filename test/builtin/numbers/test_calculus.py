@@ -4,6 +4,8 @@ Unit tests for mathics.builtins.numbers.calculus
 In particular:
 
 FindRoot[], FindMinimum[], NFindMaximum[] tests
+
+
 """
 
 import functools
@@ -11,6 +13,8 @@ import operator
 from test.helper import check_evaluation
 
 import pytest
+
+from mathics.core.builtin import check_requires_list
 
 methods_findminimum = ["Automatic", "Newton", "brent", "golden"]
 generic_tests_for_findminimum = [
@@ -26,40 +30,74 @@ generic_tests_for_findminimum = [
     ),
 ]
 
-tests_for_findminimum = sum(
-    [
-        [
-            (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2], None)
-            for tst in generic_tests_for_findminimum
-        ]
-        for method in methods_findminimum
-    ],
-    [
+if check_requires_list(["scipy", "scipy.integrate"]):
+    methods_findminimum = ["Automatic", "Newton", "brent", "golden"]
+    generic_tests_for_findminimum = [
         (
-            r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}, Method->Newton], {_Real,{x->_Real}}]",
+            r"MatchQ[FindMinimum[Cos[x]^2, {x,1.}, {method}],{_Real,{x->_Real}}]",
             r"True",
-            r"check message",
-            [
-                r"Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point."
-            ],
-        )
-    ],
-)
-methods_findroot = ["Automatic", "Newton", "Secant", "brenth"]
-generic_tests_for_findroot = [
-    (r"MatchQ[FindRoot[Cos[x+1.5], {x,.1}, {method}], {x->_Real}]", r"True", ""),
-]
-tests_for_findroot = functools.reduce(
-    operator.iadd,
-    [
+            "",
+        ),
+        (
+            r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}, {method} ], {_Real,{x->_Real}}]",
+            r"True",
+            "",
+        ),
+    ]
+    tests_for_findminimum = sum(
         [
-            (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2])
-            for tst in generic_tests_for_findroot
-        ]
-        for method in methods_findroot
-    ],
-    [],
-)
+            [
+                (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2], None)
+                for tst in generic_tests_for_findminimum
+            ]
+            for method in methods_findminimum
+        ],
+        [
+            (
+                r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}, Method->Newton], {_Real,{x->_Real}}]",
+                r"True",
+                r"check message",
+                [
+                    r"Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point."
+                ],
+            )
+        ],
+    )
+    methods_findroot = ["Automatic", "Newton", "Secant", "brenth"]
+    generic_tests_for_findroot = [
+        (r"MatchQ[FindRoot[Cos[x+1.5], {x,.1}, {method}], {x->_Real}]", r"True", ""),
+    ]
+    tests_for_findroot = functools.reduce(
+        operator.iadd,
+        [
+            [
+                (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2])
+                for tst in generic_tests_for_findroot
+            ]
+            for method in methods_findroot
+        ],
+        [],
+    )
+
+else:
+    tests_for_findminimum = [
+        (
+            r"MatchQ[FindMinimum[Cos[x]^2, {x,1.}],{_Real,{x->_Real}}]",
+            r"True",
+            "",
+            None,
+        ),
+        (
+            r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}], {_Real,{x->_Real}}]",
+            r"True",
+            "",
+            None,
+        ),
+    ]
+    tests_for_findroot = [
+        (r"MatchQ[FindRoot[Cos[x+1.5], {x,.1}], {x->_Real}]", r"True", ""),
+    ]
+
 
 tests_for_integrate = [
     (r"Integrate[Sec[x]*Tan[x],x]", "1 / Cos[x]", "issue #346"),
@@ -105,7 +143,7 @@ def test_integrate(str_expr: str, str_expected: str, assert_fail_message):
             "D[{y, -x}[2], {x, y}]",
             "D[{y, -x}[2], {x, y}]",
             [
-                "Multiple derivative specifier {x, y} does not have the form {variable,"
+                "Multiple derivative specifier {x, y} does not have the form {variable,"  # noqa: ISC004
                 " n}, where n is a non-negative machine integer."
             ],
         ),
@@ -157,11 +195,6 @@ def test_D(str_expr: str, str_expected: str, expected_messages):
             "Solve[Sin(x) == 1, x]",
             "{{x -> 1 / Sin}}",
             [],
-        ),
-        (
-            "Solve[E == 1, E]",
-            "Solve[False, E]",
-            ["E is not a valid variable."],
         ),
         (
             "Solve[E == 1, E]",
