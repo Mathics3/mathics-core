@@ -1,5 +1,5 @@
-from collections.abc import Callable
-from typing import Final, Literal
+from collections.abc import Callable, Iterator, Sequence
+from typing import Final, Literal, TypeVar
 
 import sympy
 
@@ -38,6 +38,8 @@ from mathics.core.systemsymbols import (
     SymbolUnequal,
 )
 from mathics.eval.nevaluator import eval_N
+
+T = TypeVar("T")
 
 # An annotation type for any number of Literal argument counts -1, 0, 1.
 # In reality we'll have one or two of these, but we use elipsis anyway
@@ -149,7 +151,14 @@ def expr_min(elements) -> Expression | int:
     return result
 
 
-def get_pairs(args):
+def get_adjacent_pairs(args: Sequence[T]) -> Iterator[tuple[T, T]]:
+    """Yield all pairs, args[i, i+] where 0 <= i < len(args)"""
+    for i in range(len(args) - 1):
+        yield (args[i], args[i + 1])
+
+
+def get_lt_pairs(args: Sequence[T]) -> Iterator[tuple[T, T]]:
+    """Yield all pairs, args[i, j] where 0 <= i < j < len(args)"""
     for i in range(len(args)):
         for j in range(i):
             yield (args[i], args[j])
@@ -241,7 +250,6 @@ def eval_comparison_operator(
             return
         elif c not in wanted:
             return SymbolFalse
-        assert c in wanted
     return SymbolTrue
 
 
@@ -259,7 +267,7 @@ def eval_equality_operator(
     ):
         return eval_other(elements, evaluation)
     args = numerify_args(elements, evaluation)
-    for x, y in get_pairs(args):
+    for x, y in get_adjacent_pairs(args):
         c = do_cplx_equal(x, y)
         if c is None:
             return

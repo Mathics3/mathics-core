@@ -100,10 +100,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         v0 = vals[0]
         for v in vals:
             args = Expression(SymbolSequence, v[1], v0[1])
-            if (
-                eval_comparison_operator(SymbolLessEqual, args, evaluation)
-                is SymbolTrue
-            ):
+            if eval_comparison_operator(SymbolLess, args, evaluation) is SymbolTrue:
                 v0 = v
         return v0
 
@@ -153,8 +150,10 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         offset = eval_N(val_d1 / abs(val_d2), evaluation)
         x1 = eval_N(x0 - offset, evaluation)
         new_val = eval_N(f.replace_vars({x_name: x1}), evaluation)
-        args = Expression(SymbolSequence, new_val, curr_val)
-        if eval_comparison_operator(SymbolLessEqual, args, evaluation) is SymbolTrue:
+        if (
+            Expression(SymbolLessEqual, new_val, curr_val).evaluate(evaluation)
+            is SymbolTrue
+        ):
             if is_zero(offset, acc_goal, prec_goal, evaluation):
                 if is_find_maximum:
                     return (x1, -curr_val), True
