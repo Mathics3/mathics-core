@@ -6,6 +6,7 @@ This code loads the top-level definition of a Mathics3
 Builtin.
 """
 
+import gc
 import importlib
 import inspect
 import logging
@@ -31,6 +32,10 @@ if TYPE_CHECKING:
 # and test module consistency. It is
 # is initialized via below import_builtins modules
 mathics3_builtins_modules: List[ModuleType] = []
+
+# The threshold of the youngest generation of Python's cyclic garbage
+# collector set by ``import_and_load_builtins``. See ``set_gc_threshold``.
+GC_THRESHOLD_GENERATION0 = 20000
 
 _builtins: Dict[str, "Builtin"] = {}
 
@@ -234,6 +239,28 @@ def import_and_load_builtins():
     )
 
     add_builtins_from_builtin_modules(mathics3_builtins_modules)
+    set_gc_threshold()
+
+
+def set_gc_threshold():
+    """
+    Make the cyclic garbage collector run less often.
+
+    Evaluation makes many objects, but (almost) no reference cycles among
+    them, so reference counting frees them as soon as they are not
+    used. Python's default threshold for the youngest generation (700,
+    or 2000 since 3.13) then makes the collector run very often while a
+    large result is built, and every tenth run of a generation also
+    collects the next one, up to all the definitions. On heavy
+    Combinatorica cells this took 10 % of the time, for no memory back.
+
+    The threshold is only raised, never lowered, so a program that
+    embeds Mathics3 and sets a higher one, or 0 to switch collection
+    off, keeps it.
+    """
+    threshold = gc.get_threshold()
+    if 0 < threshold[0] < GC_THRESHOLD_GENERATION0:
+        gc.set_threshold(GC_THRESHOLD_GENERATION0, *threshold[1:])
 
 
 def import_builtin_module(import_name: str, modules: List[ModuleType]):

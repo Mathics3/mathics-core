@@ -171,6 +171,118 @@ def expression_pattern_match_element_orderless(
     )
 
 
+# These are module functions and not closures in
+# get_pre_choices_orderless: a recursive closure refers to itself through
+# its cell, so each call would leave a reference cycle for the garbage
+# collector.
+
+
+def _per_name(
+    expression: Expression,
+    evaluation,
+    yield_name: Callable,
+    groups: Tuple,
+    vars_dict: dict,
+):
+    """
+    For ``get_pre_choices_orderless``.
+
+    Yields possible variable settings (dictionaries) for the
+    remaining pattern groups.
+    This version correctly handles groups with multiple patterns
+    sharing the same variable name.
+    """
+    if not groups:
+        yield_name(vars_dict)
+        return
+
+    name, group_patterns = groups[0]
+    remaining_groups = groups[1:]
+
+    # Compute combined min/max lengths for the group.
+    low: int
+    high: int
+    min_len: int = 0
+    max_len: int = -1
+    for p in group_patterns:
+        low, high = p.get_match_count()
+        min_len = max(min_len, low)
+        if max_len == -1:
+            max_len = high
+        elif high is not None:
+            max_len = min(max_len, high)
+        else:
+            raise ValueError("high is None?", high)
+
+    # If the group can match zero elements and there are elements available,
+    # we also need to consider the possibility of matching zero.
+    # The subranges call below already handles flexible lengths.
+
+    # Determine which elements are still available.
+    # In this context, we haven't consumed any elements yet for this group,
+    # but the recursion may have consumed some in previous groups.
+    # For simplicity, we use the full expression elements and rely on the
+    # fact that later groups will consume the rest.
+    # This is a simplification; a production version should track
+    # remaining elements via a state.
+
+    # Use subranges to generate all subsequences of available elements.
+    # We need to know the available elements; for now, we use the full list.
+    available = tuple(expression.elements)  # This should be filtered in reality.
+
+    # Generate all possible subsequences.
+    # We can limit the search by using the computed min/max lengths.
+    for seq, rest in subranges(available, min_len, max_len, flexible_start=True):
+        ok = True
+        for p in group_patterns:
+            if not _sequence_matches(p, seq, vars_dict, evaluation):
+                ok = False
+                break
+        if ok:
+            # Create a new vars_dict with the assignment.
+            new_vars = vars_dict.copy()
+            if len(seq) == 1:
+                new_vars[name] = seq[0]
+            else:
+                new_vars[name] = Expression(SymbolSequence, *seq)
+            _per_name(expression, evaluation, yield_name, remaining_groups, new_vars)
+
+
+def _sequence_matches(pattern, seq, vars_dict, evaluation):
+    """Helper: check if pattern matches the whole sequence."""
+    # For a single element, match the bare element directly.
+    # Wrapping it in Sequence[...] would make the head of the
+    # matched expression "Sequence" instead of the element's own
+    # head, which breaks typed patterns like a_Integer (Blank[Integer]
+    # checks the head of what it's given -- Sequence[1] has head
+    # Sequence, not Integer, even though the untyped Blank[] doesn't
+    # care and matches either way).
+    if len(seq) == 1:
+        match_target = seq[0]
+    else:
+        match_target = Expression(SymbolSequence, *seq)
+
+    # Use a temporary context to see if the match consumes all.
+    consumed = False
+
+    def capture(vars, rest):
+        nonlocal consumed
+        if rest is None or (len(rest[0]) == 0 and len(rest[1]) == 0):
+            consumed = True
+
+    ctx = {
+        "yield_func": capture,
+        "vars_dict": vars_dict,
+        "evaluation": evaluation,
+        "fully": True,
+    }
+    try:
+        pattern.match(match_target, ctx)
+    except StopGenerator:
+        pass
+    return consumed
+
+
 def get_pre_choices_orderless(
     pat: ExpressionPattern, expression: Expression, pattern_context
 ):
@@ -204,106 +316,14 @@ def get_pre_choices_orderless(
             prev_pattern = pattern
             prev_name = name
 
-    def per_name(yield_name: Callable, groups: Tuple, vars_dict: dict):
-        """
-        Yields possible variable settings (dictionaries) for the
-        remaining pattern groups.
-        This version correctly handles groups with multiple patterns
-        sharing the same variable name.
-        """
-        if not groups:
-            yield_name(vars_dict)
-            return
-
-        name, group_patterns = groups[0]
-        remaining_groups = groups[1:]
-
-        # Compute combined min/max lengths for the group.
-        low: int
-        high: int
-        min_len: int = 0
-        max_len: int = -1
-        for p in group_patterns:
-            low, high = p.get_match_count()
-            min_len = max(min_len, low)
-            if max_len == -1:
-                max_len = high
-            elif high is not None:
-                max_len = min(max_len, high)
-            else:
-                raise ValueError("high is None?", high)
-
-        # If the group can match zero elements and there are elements available,
-        # we also need to consider the possibility of matching zero.
-        # The subranges call below already handles flexible lengths.
-
-        # Determine which elements are still available.
-        # In this context, we haven't consumed any elements yet for this group,
-        # but the recursion may have consumed some in previous groups.
-        # For simplicity, we use the full expression elements and rely on the
-        # fact that later groups will consume the rest.
-        # This is a simplification; a production version should track
-        # remaining elements via a state.
-
-        # Use subranges to generate all subsequences of available elements.
-        # We need to know the available elements; for now, we use the full list.
-        available = tuple(expression.elements)  # This should be filtered in reality.
-
-        # Generate all possible subsequences.
-        # We can limit the search by using the computed min/max lengths.
-        for seq, rest in subranges(available, min_len, max_len, flexible_start=True):
-            ok = True
-            for p in group_patterns:
-                if not sequence_matches(
-                    p, seq, vars_dict, pattern_context["evaluation"]
-                ):
-                    ok = False
-                    break
-            if ok:
-                # Create a new vars_dict with the assignment.
-                new_vars = vars_dict.copy()
-                if len(seq) == 1:
-                    new_vars[name] = seq[0]
-                else:
-                    new_vars[name] = Expression(SymbolSequence, *seq)
-                per_name(yield_name, remaining_groups, new_vars)
-
-    def sequence_matches(pattern, seq, vars_dict, evaluation):
-        """Helper: check if pattern matches the whole sequence."""
-        # For a single element, match the bare element directly.
-        # Wrapping it in Sequence[...] would make the head of the
-        # matched expression "Sequence" instead of the element's own
-        # head, which breaks typed patterns like a_Integer (Blank[Integer]
-        # checks the head of what it's given -- Sequence[1] has head
-        # Sequence, not Integer, even though the untyped Blank[] doesn't
-        # care and matches either way).
-        if len(seq) == 1:
-            match_target = seq[0]
-        else:
-            match_target = Expression(SymbolSequence, *seq)
-
-        # Use a temporary context to see if the match consumes all.
-        consumed = False
-
-        def capture(vars, rest):
-            nonlocal consumed
-            if rest is None or (len(rest[0]) == 0 and len(rest[1]) == 0):
-                consumed = True
-
-        ctx = {
-            "yield_func": capture,
-            "vars_dict": vars_dict,
-            "evaluation": evaluation,
-            "fully": True,
-        }
-        try:
-            pattern.match(match_target, ctx)
-        except StopGenerator:
-            pass
-        return consumed
-
     # Start the recursive generation.
-    per_name(yield_choice, tuple(groups.items()), vars_dict)
+    _per_name(
+        expression,
+        pattern_context["evaluation"],
+        yield_choice,
+        tuple(groups.items()),
+        vars_dict,
+    )
 
 
 class OrderlessExpressionPattern(ExpressionPattern):
