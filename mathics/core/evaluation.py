@@ -720,7 +720,10 @@ class Evaluation:
         if self.stopped:
             raise TimeoutInterrupt
         interrupt_request = self.interrupt_request
-        if interrupt_request is not None and threading.current_thread() is self.evaluating_thread:
+        if (
+            interrupt_request is not None
+            and threading.current_thread() is self.evaluating_thread
+        ):
             self.interrupt_request = None
             interrupt_request(sys._getframe(1))
 

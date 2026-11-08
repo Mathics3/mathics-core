@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Ctrl-C while an evaluation runs on its own thread (see
 Evaluation._evaluate_on_thread).
@@ -19,7 +18,6 @@ import pytest
 
 from mathics.core import evaluation as core_evaluation
 from mathics.session import MathicsSession
-
 
 # ---- unit tests ---------------------------------------------------------------
 
