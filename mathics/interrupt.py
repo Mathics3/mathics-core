@@ -107,7 +107,7 @@ def Mathics3_interrupt_handler(
                     inspect_eval_loop(evaluation)
 
             elif user_input in ("show", "s"):
-                # In some cases we can better, by going back to the caller
+                # In some cases, we can do better by going back to the caller
                 # and reconstructing the actual call with arguments.
                 eval_frame = find_Mathics3_evaluation_method(interrupted_frame)
                 if eval_frame is None:
@@ -130,7 +130,7 @@ def Mathics3_interrupt_handler(
                     """Your options are:
 	abort (or a) to abort current calculation
 	continue (or c) to continue
-	debugger (or d) to to enter a Python debugger
+	debugger (or d) to enter a Python debugger
 	exit (or quit) to exit Mathics3
 	inspect (or i) to enter an interactive dialog
 	show (or s) to show current operation (and then continue)
@@ -144,17 +144,17 @@ def Mathics3_interrupt_handler(
         except TimeoutInterrupt:
             # There might have been a Pause[] set before we entered
             # this handler. If that happens, we can clear the
-            # error. Ideally the interrupt REPL would would have clear
+            # error. Ideally the interrupt REPL would have cleared
             # all timeout signals, but Python doesn't support that, as
             # far as I know.
             #
-            # Here, we note we have time'd out. This also silences
+            # Here, we note we have timed out. This also silences
             # other handlers that we've handled this.
             if evaluation is not None:
                 evaluation.timeout = True
             break
         except ReturnInterrupt:
-            # the interrupt shell probably isssued a Return[].
+            # the interrupt shell probably issued a Return[].
             # Respect that.
             break
         except RuntimeError:
