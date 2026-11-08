@@ -59,11 +59,11 @@ SymbolPrePrint = Symbol("System`$PrePrint")
 SymbolPost = Symbol("System`$Post")
 
 # MIN_RECURSION_LIMIT is the smallest value allowed for $RecursionLimit, as in WMA:
-# $RecursionLimit = 10 there gives "value must be Infinity or an integer at least 20".
+# $RecursionLimit = 10 gives "value must be Infinity or an integer at least 20".
 
 MIN_RECURSION_LIMIT = 20
 
-# MAX_RECURSION_DEPTH gives the maximum value allowed for $RecursionLimit. it's usually set to its
+# MAX_RECURSION_DEPTH gives the maximum value allowed for $RecursionLimit. It's usually set to its
 # default settings.DEFAULT_MAX_RECURSION_DEPTH.
 
 MAX_RECURSION_DEPTH = max(
@@ -73,7 +73,7 @@ MAX_RECURSION_DEPTH = max(
 
 
 def python_recursion_depth(n) -> int:
-    # convert Mathics3 recursion depth to Python recursion depth. this estimates how many Python calls
+    # Convert Mathics3 recursion depth to Python recursion depth. # This estimates how many Python calls
     # we need at worst to process one Mathics3 recursion. A recursive
     # definition matched through a Condition or PatternTest, as in
     # Combinatorica's DepthFirstTraversal, takes a little over 30.
@@ -82,12 +82,12 @@ def python_recursion_depth(n) -> int:
 
 def python_stack_size(n) -> int:  # n is a Mathics3 recursion depth
     # python_stack_frame_size is the C stack, in bytes, that one Python call takes on
-    # average. Since Python 3.11 a call from Python code to Python code takes none,
+    # average. Since Python 3.11, a call from Python code to Python code takes none,
     # so this is far below the size of a C frame. Measured on macOS arm64 with
     # Python 3.11 and 3.14: a Combinatorica DepthFirstTraversal, and a recursive
     # definition matched through PatternTest with a Module, take 0.7 to 1.4 KB
     # per Mathics3 level. 100 gives 4 KB per level, so 400 MB for 100000 levels:
-    # address space reserved for the thread, only the part used is allocated.
+    # address space reserved for the thread; only the part used is allocated.
     python_stack_frame_size = 100
     return python_recursion_depth(n) * python_stack_frame_size
 
@@ -128,7 +128,7 @@ EVALUATION_THREAD_STACK_SIZE = (_stack_size + _MIB - 1) // _MIB * _MIB
 
 
 def set_python_recursion_limit(n) -> None:
-    "Sets the required python recursion limit given $RecursionLimit value"
+    "Sets the required Python recursion limit given $RecursionLimit value"
     python_depth = python_recursion_depth(n)
     sys.setrecursionlimit(python_depth)
     if sys.getrecursionlimit() != python_depth:
@@ -157,7 +157,7 @@ class _Out(KeyComparable):
 
 
 class Evaluation:
-    """An Evaluation object contains everyting about the evaluation
+    """An Evaluation object contains everything about the evaluation
     environment, such as evaluation definitions, exception and
     formatting information, and a grab bag of other things.
 
@@ -252,7 +252,7 @@ class Evaluation:
     def parse_feeder_returning_code_and_messages(self, feeder) -> tuple:
         """
         Parse a single expression from feeder, print the messages it produces and
-        return the result, the source code for this and evaluated
+        return the result, the source code for this and the evaluated
         messages created in evaluation.
 
         If there was a SyntaxError, the source code returned is "" and the result is None.
@@ -275,9 +275,9 @@ class Evaluation:
         """
         Evaluate a Mathics3 expression and return the result of evaluation.
 
-        On return self.exc_result will contain status of various
-        exception type of result like $Aborted, Overflow, Break, or Continue.
-        If none of the above applies self.exc_result is Null
+        On return, self.exc_result will contain status of various
+        exception types of result like $Aborted, Overflow, Break, or Continue.
+        If none of the above applies, self.exc_result is None.
         """
         if USE_EVALUATION_THREAD and not getattr(
             threading.current_thread(), "mathics3_evaluation", False
@@ -546,10 +546,10 @@ class Evaluation:
         """
         This function takes an expression `expr` and
         a format `format`. If `format` is None, then returns `expr`. Otherwise,
-        produce an str with the proper format.
+        it produces a str with the proper format.
 
         Notice that this function can be overwritten by the front-ends, so it should not be
-        used in Builtin classes where it is expected a front-end independent result.
+        used in Builtin classes where a front-end-independent result is expected.
         """
         from mathics.format.box import format_element
 
@@ -829,7 +829,7 @@ class Output(ABC):
 
     def max_stored_size(self, output_settings) -> int:
         """
-        Return the largeet number of history items allowed.
+        Return the largest number of history items allowed.
         """
         return output_settings.MAX_STORED_SIZE
 
@@ -867,7 +867,7 @@ class Result:
       * MathML
       * None - defaults to text
 
-    In the future "form" will be renamed "format" or something like this.
+    In the future, "form" will be renamed "format" or something like this.
     """
 
     def __init__(
