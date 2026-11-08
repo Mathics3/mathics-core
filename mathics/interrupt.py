@@ -8,8 +8,8 @@ import signal
 import subprocess
 import sys
 import threading
+from collections.abc import Callable
 from types import FrameType
-from typing import Callable, Optional
 
 from mathics import settings
 from mathics.core.evaluation import Evaluation
@@ -45,7 +45,7 @@ def inspect_eval_loop(evaluation: Evaluation):
                 if not settings.ENABLE_SYSTEM_COMMANDS:
                     evaluation.message("Run", "dis")
                 else:
-                    subprocess.run(source_code[1:], shell=True)
+                    subprocess.run(source_code[1:], check=False, shell=True)
                 if shell.definitions is not None:
                     shell.definitions.increment_line_no(1)
                 continue
@@ -56,7 +56,6 @@ def inspect_eval_loop(evaluation: Evaluation):
                 shell.print_result(result, strict_wl_output=True)
         except TimeoutInterrupt:
             print("\nTimeout occurred - ignored.")
-            pass
         except ReturnInterrupt:
             evaluation.last_eval = None
             evaluation.exc_result = None
@@ -77,7 +76,7 @@ def inspect_eval_loop(evaluation: Evaluation):
 
 
 def Mathics3_interrupt_handler(
-    evaluation: Optional[Evaluation], interrupted_frame: FrameType, print_fn: Callable
+    evaluation: Evaluation | None, interrupted_frame: FrameType, print_fn: Callable
 ):
     try:
         import readline  # noqa
@@ -97,7 +96,7 @@ def Mathics3_interrupt_handler(
                 if not settings.ENABLE_SYSTEM_COMMANDS:
                     print_fn("Execution of external commands is disabled.")
                 else:
-                    breakpoint()
+                    breakpoint()  # noqa  # type: ignore[name-defined]
             elif user_input in ("exit", "quit"):
                 print_fn("Mathics3 exited because of an interrupt.")
                 sys.exit(3)
@@ -108,7 +107,7 @@ def Mathics3_interrupt_handler(
                     inspect_eval_loop(evaluation)
 
             elif user_input in ("show", "s"):
-                # In some cases we can better, by going back to the caller
+                # In some cases, we can do better by going back to the caller
                 # and reconstructing the actual call with arguments.
                 eval_frame = find_Mathics3_evaluation_method(interrupted_frame)
                 if eval_frame is None:
@@ -131,7 +130,7 @@ def Mathics3_interrupt_handler(
                     """Your options are:
 	abort (or a) to abort current calculation
 	continue (or c) to continue
-	debugger (or d) to to enter a Python debugger
+	debugger (or d) to enter a Python debugger
 	exit (or quit) to exit Mathics3
 	inspect (or i) to enter an interactive dialog
 	show (or s) to show current operation (and then continue)
@@ -145,17 +144,17 @@ def Mathics3_interrupt_handler(
         except TimeoutInterrupt:
             # There might have been a Pause[] set before we entered
             # this handler. If that happens, we can clear the
-            # error. Ideally the interrupt REPL would would have clear
+            # error. Ideally the interrupt REPL would have cleared
             # all timeout signals, but Python doesn't support that, as
             # far as I know.
             #
-            # Here, we note we have time'd out. This also silences
+            # Here, we note we have timed out. This also silences
             # other handlers that we've handled this.
             if evaluation is not None:
                 evaluation.timeout = True
             break
         except ReturnInterrupt:
-            # the interrupt shell probably isssued a Return[].
+            # the interrupt shell probably issued a Return[].
             # Respect that.
             break
         except RuntimeError:
@@ -164,11 +163,14 @@ def Mathics3_interrupt_handler(
             pass
 
 
-def Mathics3_basic_signal_handler(sig, interrupted_frame):
+def Mathics3_basic_signal_handler(
+    sig: int, interrupted_frame: FrameType | None
+) -> None:
     """
     Custom signal handler for SIGINT (Ctrl+C).
     """
-    evaluation: Optional[Evaluation] = None
+    evaluation: Evaluation | None = None
+
     # Find an evaluation object to pass to the Mathics3 interrupt handler
     while interrupted_frame is not None:
         if (
@@ -176,13 +178,21 @@ def Mathics3_basic_signal_handler(sig, interrupted_frame):
         ) is not None and isinstance(evaluation, Evaluation):
             break
         interrupted_frame = interrupted_frame.f_back
-    print_fn = evaluation.print_out if evaluation is not None else print
+
+    print_fn: Callable[..., None] = (
+        evaluation.print_out
+        if evaluation is not None
+        else (lambda *args, **kwargs: print(*args, **kwargs))
+    )
     if (
         interrupted_frame is not None
         and (evaluating_thread := interrupted_frame.f_locals.get("evaluating_thread"))
         is not None
         and evaluating_thread is not threading.current_thread()
     ):
+        if evaluation is None:
+            return
+
         # The evaluation runs on a thread of its own (see
         # Evaluation._evaluate_on_thread), and only the main thread gets
         # signals. Let the evaluating thread run the handler, where it can
@@ -192,6 +202,7 @@ def Mathics3_basic_signal_handler(sig, interrupted_frame):
             return
 
         def handle_in_evaluating_thread(frame: FrameType) -> None:
+            assert evaluation is not None
             evaluation.interrupt_menu_open = True
             try:
                 print_fn("")
@@ -202,20 +213,26 @@ def Mathics3_basic_signal_handler(sig, interrupted_frame):
         evaluation.interrupt_request = handle_in_evaluating_thread
 
         def still_waiting() -> None:
+            assert evaluation is not None
             # A step that does not check for interrupts, such as a long
             # call into SymPy, delays the menu: say that Ctrl-C was seen.
             # Plain print: print_fn formats through Mathics3, which would
             # take the pending interrupt on this timer thread.
             if evaluation.interrupt_request is handle_in_evaluating_thread:
-                print("\n(interrupt: the menu opens when the current step finishes)", flush=True)
+                print(
+                    "\n(interrupt: the menu opens when the current step finishes)",
+                    flush=True,
+                )
 
         timer = threading.Timer(0.5, still_waiting)
         timer.daemon = True
         timer.start()
         return
+
     print_fn("")
     if interrupted_frame is None:
         print("Unable to find Evaluation frame to start on")
+        return
     Mathics3_interrupt_handler(evaluation, interrupted_frame, print_fn)
 
 
