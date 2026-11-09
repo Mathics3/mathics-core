@@ -73,7 +73,7 @@ MAX_RECURSION_DEPTH = max(
 
 
 def python_recursion_depth(n) -> int:
-    # Convert Mathics3 recursion depth to Python recursion depth. # This estimates how many Python calls
+    # Convert Mathics3 recursion depth to Python recursion depth. This estimates how many Python calls
     # we need at worst to process one Mathics3 recursion. A recursive
     # definition matched through a Condition or PatternTest, as in
     # Combinatorica's DepthFirstTraversal, takes a little over 30.
@@ -277,7 +277,7 @@ class Evaluation:
 
         On return, self.exc_result will contain status of various
         exception types of result like $Aborted, Overflow, Break, or Continue.
-        If none of the above applies, self.exc_result is None.
+        If none of the above applies, self.exc_result is SymbolNull.
         """
         if USE_EVALUATION_THREAD and not getattr(
             threading.current_thread(), "mathics3_evaluation", False

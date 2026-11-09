@@ -76,7 +76,9 @@ def inspect_eval_loop(evaluation: Evaluation):
 
 
 def Mathics3_interrupt_handler(
-    evaluation: Evaluation | None, interrupted_frame: FrameType, print_fn: Callable
+    evaluation: Evaluation | None,
+    interrupted_frame: FrameType | None,
+    print_fn: Callable,
 ):
     try:
         import readline  # noqa
@@ -232,7 +234,6 @@ def Mathics3_basic_signal_handler(
     print_fn("")
     if interrupted_frame is None:
         print("Unable to find Evaluation frame to start on")
-        return
     Mathics3_interrupt_handler(evaluation, interrupted_frame, print_fn)
 
 
