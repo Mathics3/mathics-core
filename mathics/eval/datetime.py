@@ -54,6 +54,11 @@ def eval_pause(sleeptime: float, evaluation):
         time.sleep(step_duration)
         if evaluation.timeout:
             break
+        if evaluation.interrupt_request is not None:
+            # Ctrl-C while the evaluation runs on its own thread: the
+            # interrupt menu runs here, as a signal would have cut into
+            # the sleep on the main thread.
+            evaluation.check_stopped()
         if sleeptime < time.time() - start:
             break
     return

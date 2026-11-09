@@ -8,6 +8,8 @@ from test.helper import check_evaluation_as_in_cli
 
 import pytest
 
+from mathics.core import evaluation as core_evaluation
+
 
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
@@ -34,10 +36,10 @@ import pytest
             "a Block value is evaluated before the variable is reset",
         ),
         (
-            "ClearAll[f]; f[n_] := 1 + f[n + 1]; Block[{$RecursionLimit = Infinity}, f[0]]",
-            ("Recursion depth of 512 exceeded.",),
-            "$Aborted",
-            "Infinity goes as deep as the Python stack is set up for, then stops",
+            "ClearAll[f]; f[0] = 0; f[n_] := 1 + f[n - 1]; Block[{$RecursionLimit = Infinity}, f[2000]]",
+            None,
+            "2000",
+            "Infinity is not bounded by the largest integer $RecursionLimit",
         ),
         ("ClearAll[f];", None, None, None),
         (
@@ -112,7 +114,9 @@ import pytest
             "{h, 3}",
             "Release in the left-hand side of a definition",
         ),
-        ("ClearAll[f, h, x];", None, None, None),
+        # a = a + a above is left defined otherwise, and the next test file
+        # in the same worker that uses a hits the recursion limit
+        ("ClearAll[a, f, h, x];", None, None, None),
     ],
 )
 def test_evaluation(str_expr, msgs, str_expected, fail_msg):
@@ -179,3 +183,77 @@ def test_evaluate_timeout(str_expr):
     assert [m.text for m in result.out] == ["Timeout reached."]
     # The next evaluation has no limit left over.
     assert session.evaluate_as_in_cli("Length[Table[i, {i, 10}]]").result == "10"
+
+
+def test_infinite_recursion_limit(monkeypatch):
+    """$RecursionLimit = Infinity goes as deep as MAX_INFINITE_RECURSION_DEPTH,
+    then stops, and the message gives the limit in effect inside the Block."""
+    monkeypatch.setattr(core_evaluation, "MAX_INFINITE_RECURSION_DEPTH", 1000)
+    check_evaluation_as_in_cli(
+        "ClearAll[f]; f[n_] := 1 + f[n + 1]; Block[{$RecursionLimit = Infinity}, f[0]]",
+        "$Aborted",
+        "Infinity goes as deep as the stack is set up for, then stops",
+        ("Recursion depth of 1000 exceeded.",),
+    )
+    check_evaluation_as_in_cli("ClearAll[f];")
+
+
+def test_recursion_error_reports_limit_in_effect(monkeypatch):
+    """A RecursionError from Python is reported with the $RecursionLimit in
+    effect where it happened, not the one restored after leaving the Block."""
+    from mathics.core.evaluation import Evaluation
+
+    original = Evaluation.inc_recursion_depth
+
+    def inc_recursion_depth(self):
+        original(self)
+        if self.recursion_depth > 600:
+            raise RecursionError
+
+    monkeypatch.setattr(Evaluation, "inc_recursion_depth", inc_recursion_depth)
+    check_evaluation_as_in_cli(
+        "ClearAll[f]; f[n_] := 1 + f[n + 1]; Block[{$RecursionLimit = Infinity}, f[0]]",
+        "$Aborted",
+        None,
+        (
+            "Recursion depth of %d exceeded."
+            % core_evaluation.MAX_INFINITE_RECURSION_DEPTH,
+        ),
+    )
+    check_evaluation_as_in_cli("ClearAll[f];")
+
+
+@pytest.mark.skipif(
+    not core_evaluation.USE_EVALUATION_THREAD,
+    reason="evaluations run on the calling thread on this platform",
+)
+def test_evaluation_runs_on_a_thread_with_a_large_stack(monkeypatch):
+    """Evaluation.evaluate() runs the evaluation on a thread whose stack is
+    sized for the deepest recursion allowed, and hands back its result and
+    its exceptions."""
+    import threading
+
+    from mathics.session import MathicsSession
+
+    seen = {}
+    original = core_evaluation.Evaluation._evaluate
+
+    def _evaluate(self, query, timeout=None, format=None):
+        seen["thread"] = threading.current_thread()
+        return original(self, query, timeout, format)
+
+    monkeypatch.setattr(core_evaluation.Evaluation, "_evaluate", _evaluate)
+    session = MathicsSession()
+    assert session.evaluate_as_in_cli("1 + 1").result == "2"
+    assert seen["thread"] is not threading.main_thread()
+    assert getattr(seen["thread"], "mathics3_evaluation", False)
+    # The stack size is set only while the thread is started.
+    assert threading.stack_size() == 0
+
+    def failing(self, query, timeout=None, format=None):
+        raise SystemExit(7)
+
+    monkeypatch.setattr(core_evaluation.Evaluation, "_evaluate", failing)
+    with pytest.raises(SystemExit) as exc_info:
+        session.evaluate_as_in_cli("1 + 1")
+    assert exc_info.value.code == 7
