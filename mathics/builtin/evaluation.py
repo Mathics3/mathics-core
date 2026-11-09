@@ -31,13 +31,13 @@ class RecursionLimit(Predefined):
 
     Calculations terminated by '\$RecursionLimit' return '\$Aborted':
     >> a = a + a
-     : Recursion depth of 200 exceeded.
+     : Recursion depth of 1024 exceeded.
      = $Aborted
     >> $RecursionLimit
-     = 200
+     = 1024
 
     >> $RecursionLimit = x;
-     : Cannot set $RecursionLimit to x; value must be an integer between 20 and 512; use the MATHICS_MAX_RECURSION_DEPTH environment variable to allow higher limits.
+     : Cannot set $RecursionLimit to x; value must be an integer between 20 and 1024; use the MATHICS_MAX_RECURSION_DEPTH environment variable to allow higher limits.
 
     >> $RecursionLimit = 512
      = 512
@@ -47,7 +47,7 @@ class RecursionLimit(Predefined):
     """
 
     name = "$RecursionLimit"
-    value = 200
+    value = 1024
 
     set_python_recursion_limit(value)
 

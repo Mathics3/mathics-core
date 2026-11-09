@@ -20,7 +20,7 @@ import pytest
         ),
         ("$RecursionLimit = 20", None, "20", None),
         ("a = a + a", ("Recursion depth of 20 exceeded.",), "$Aborted", None),
-        ("$RecursionLimit = 200", None, "200", None),
+        ("$RecursionLimit = 1024", None, "1024", None),
         (
             "ClearAll[f]; f[0] = 0; f[n_] := 1 + f[n - 1]; Block[{$RecursionLimit = Infinity}, f[300]]",
             None,
@@ -35,7 +35,7 @@ import pytest
         ),
         (
             "ClearAll[f]; f[n_] := 1 + f[n + 1]; Block[{$RecursionLimit = Infinity}, f[0]]",
-            ("Recursion depth of 512 exceeded.",),
+            ("Recursion depth of 1024 exceeded.",),
             "$Aborted",
             "Infinity goes as deep as the Python stack is set up for, then stops",
         ),
@@ -159,7 +159,22 @@ def test_python_recursion_error_is_reclim():
         assert [m.text for m in result.out] == ["Recursion depth of 512 exceeded."]
     finally:
         sys.setrecursionlimit(python_limit)
-        session.evaluate("ClearAll[deep]; $RecursionLimit = 200")
+        session.evaluate("ClearAll[deep]; $RecursionLimit = 1024")
+
+
+def test_session_reset_restores_python_recursion_limit():
+    """Resetting a session gives the default $RecursionLimit back, and with it
+    the Python recursion limit that goes with it."""
+    from test.helper import reset_session, session
+
+    from mathics.core.evaluation import python_recursion_depth
+
+    default_limit = session.evaluate("$RecursionLimit").value
+    session.evaluate("$RecursionLimit = 100")
+    assert sys.getrecursionlimit() == python_recursion_depth(100)
+    reset_session()
+    assert session.evaluate("$RecursionLimit").value == default_limit
+    assert sys.getrecursionlimit() == python_recursion_depth(default_limit)
 
 
 @pytest.mark.parametrize(

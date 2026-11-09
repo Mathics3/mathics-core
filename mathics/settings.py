@@ -24,7 +24,7 @@ DEBUG_PRINT = False
 
 # Maximum recursion depth is safe for all Python environments
 # without setting a custom thread stack size.
-DEFAULT_MAX_RECURSION_DEPTH = 512
+DEFAULT_MAX_RECURSION_DEPTH = 1024
 
 # Maximum number of digits allows in a string representation of a string number.
 # We picked this to be able to handle 1989 ^ 1989.

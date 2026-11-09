@@ -69,7 +69,7 @@ def test_process_assign_other():
         for kind, suffix in (
             (
                 "Recursion",
-                "512; use the MATHICS_MAX_RECURSION_DEPTH environment variable to allow higher limits",
+                "1024; use the MATHICS_MAX_RECURSION_DEPTH environment variable to allow higher limits",
             ),
             ("Iteration", "Infinity"),
         ):
