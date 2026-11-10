@@ -332,10 +332,11 @@ class Definitions:
         self.pymathics: dict[str, Definition] = {}
         self.timing_trace_evaluation = False
 
-        # TraceEvaluation uses these to
-        # decide what information to show
+        # TraceEvaluation uses trace_evaluation and trace_show_rewrite to
+        # decide what information to show.
         self.trace_evaluation = False
         self.trace_show_rewrite = False
+
         self.user: dict[str, Definition] = {}
 
         if add_builtin:
