@@ -279,30 +279,6 @@ class Definitions:
     restore Rules to speed up startup time.
     """
 
-    # Use slots for instance attributes.
-    __slots__ = (
-        "_change_log",
-        "_change_marks",
-        "_packages",
-        "boxforms",
-        "builtin",
-        "context_path",
-        "current_context",
-        "deferred_module_variables",
-        "definitions_cache",
-        "inputfile",
-        "lookup_cache",
-        "now",
-        "outputforms",
-        "printforms",
-        "proxy",
-        "pymathics",
-        "timing_trace_evaluation",
-        "trace_evaluation",
-        "trace_show_rewrite",
-        "user",
-    )
-
     def __init__(
         self,
         add_builtin: bool = False,
