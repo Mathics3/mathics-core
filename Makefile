@@ -76,23 +76,21 @@ full-benchmarks:
 build:
 	$(PYTHON) ./setup.py build
 
-# Note that we need ./setup.py develop
-# because pip install doesn't handle
-# INSTALL_REQUIRES properly
 #: Set up to run from the source tree
 develop:
 	$(PIP) install --no-build-isolation -e .[dev]
 
-# See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
 develop-full:
 	$(PIP) install --no-build-isolation -e .[dev,full]
 
-# See note above on ./setup.py
+#: Set up to run from the source tree with Cython
+develop-cython:
+	$(PIP) install --no-build-isolation -e .[dev,cython]
+
 #: Set up to run from the source tree with full dependencies and Cython
 develop-full-cython:
 	$(PIP) install --no-build-isolation -e .[dev,full,cython]
-
 
 #: Make distribution: wheels, eggs, tarball
 dist:
