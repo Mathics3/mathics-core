@@ -1,7 +1,8 @@
 # cython: language_level=3
 import re
 import sys
-from typing import TYPE_CHECKING, Any, ClassVar, FrozenSet, Iterable, Optional, cast
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 from mathics.core.element import BaseElement, EvalMixin, ensure_context
 
@@ -155,10 +156,10 @@ class Atom(BaseElement):
     _head_name = ""
     _symbol_head = None
     class_head_name: ClassVar[str] = ""
-    original: Optional["Atom"] = None
+    original: "Atom" | None = None
 
     def __repr__(self) -> str:
-        return "<%s: %s>" % (self.get_atom_name(), self)
+        return f"<{self.get_atom_name()}: {self}>"
 
     def atom_to_boxes(self, f, evaluation):
         """Produces a Box expression that represents
@@ -181,7 +182,7 @@ class Atom(BaseElement):
         """
         raise NotImplementedError
 
-    def equal2(self, rhs: Any) -> Optional[bool]:
+    def equal2(self, rhs: Any) -> bool | None:
         """Mathics3 two-argument Equal (==)
         returns True if self and rhs are identical.
         """
