@@ -51,7 +51,7 @@ OUTPUT_FORMS: set[Symbol] = set()
 
 class Definition:
     """
-    A Definition is a collection of ``Rule``s and attributes which are associated with ``Symbol``.
+    A Definition is a collection of ``Rule``s and attributes are associated with ``Symbol``.
 
     The ``Rule``s are internally organized in terms of the context of application in
     ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
@@ -137,7 +137,7 @@ class Definition:
 
     def add_rule_at(self, rule: BaseRule, rule_list_name: str) -> bool:
         """
-        Add `rule` to the set of rules in field with attribute `rule_list_name`
+        Add `rule` to the set of rules in the bfield with the attribute `rule_list_name`
         """
         values = self.get_values_list(rule_list_name)
         length = len(values)
@@ -254,8 +254,8 @@ class Definition:
 class Definitions:
     """The state of one instance of the Mathics3 interpreter is stored in this object.
 
-    The state is then stored as ``Definition`` object of the different
-    symbols defined during the runtime.
+    The state is then stored as ``Definition``objects of the different
+    symbols defined during runtime.
 
     In the current implementation, the ``Definitions`` object stores
     ``Definition``s in four dictionaries:
@@ -263,12 +263,12 @@ class Definitions:
     - builtins: stores the definitions of the ``Builtin`` symbols
     - pymathics: stores the definitions of the ``Builtin`` symbols added from pymathics
       modules.
-    - user: stores the definitions created during the runtime.
-    - definition_cache: keep definitions obtained by merging builtins, pymathics, and
+    - user: stores the definitions created during runtime.
+    - definition_cache: keeps definitions obtained by merging builtins, pymathics, and
       user definitions associated with the same symbol.
 
     Note: we want Rules to be serializable so that we can dump and
-    restore Rules in order to make startup time faster.
+    restore Rules to speed up startup time.
     """
 
     # Use slots for instance attributes.
@@ -333,7 +333,7 @@ class Definitions:
         self.timing_trace_evaluation = False
 
         # TraceEvaluation uses these to
-        # decided what information to show
+        # decide what information to show
         self.trace_evaluation = False
         self.trace_show_rewrite = False
         self.user: dict[str, Definition] = {}
@@ -535,13 +535,13 @@ class Definitions:
             The name of the Symbol.
         only_if_exists : bool, optional
             If True, and the symbol was not already defined, raise a KeyError
-            exception. Otherwise, Creates a temporary Definition for
+            exception. Otherwise, creates a temporary Definition for
             the symbol, but does not store it. The default is False.
 
         Raises
         ------
         KeyError
-            Raised when `name` has not a Definition, and `only_if_exists`
+            Raised when `name` has no definition, and `only_if_exists`
             is `True`.
 
         Returns
@@ -605,7 +605,7 @@ class Definitions:
     def get_formats(self, name: str, format_name="") -> list[BaseRule]:
         """
         Return a list of format rules associated with `name`.
-        if `format_name` is given, looks to the rules associated
+        If `format_name` is given, look at the rules associated
         to that format.
         """
         formats = self.get_definition(name).formatvalues
@@ -1050,14 +1050,14 @@ def _valuesname(name: str) -> str:
     return name[7:].lower()
 
 
-# FIXME: Return an enumeration, not a Optional[str].
+# FIXME: Return an enumeration, not an Optional[str].
 def determine_value_role(
     pattern: BaseElement | BasePattern, target_symbol: Symbol
 ) -> str | None:
-    """Determine the kind of Value (DownValue, OwnValue, UpValue, etc.) is getting
-    refered to for `target_symbol`.
+    """Determine the kind of Value (DownValue, OwnValue, UpValue, etc.) is being
+    referred to for `target_symbol`.
 
-    The return value either "downvalues", "nvalues", "ownvalues",
+    The return value is either "downvalues", "nvalues", "ownvalues",
     "subvalues", "upvalues", or None
 
     The following table indicates how we decide the Value "role" from
@@ -1470,7 +1470,7 @@ def merge_definitions(candidates: list[Definition]) -> Definition:
         # because of this, ``Unprotect[Expand]; ClearAll[Expand]; Options[Expand]``
         # returns the builtin options of ``Expand`` instead of an empty list, like
         # in WMA.
-        # To get this behavior, we could just pick the options from the first
+        # To get this behavior, we couldb pick the options from the first
         # candidate.
         options.update(candidate.options)
 
@@ -1490,7 +1490,7 @@ def load_builtin_definitions(
     extension_modules: tuple = (),
 ):
     """
-    Load definitions from Builtin classes, autoload files and extension modules.
+    Load definitions from Builtin classes, autoload files,bbb and extension modules.
     """
     from mathics.core.load_builtin import (
         definition_contribute,
