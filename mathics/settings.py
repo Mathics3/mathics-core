@@ -24,15 +24,15 @@ DEBUG_PRINT = False
 
 # Maximum recursion depth is safe for all Python environments
 # without setting a custom thread stack size.
-DEFAULT_MAX_RECURSION_DEPTH = 512
+DEFAULT_MAX_RECURSION_DEPTH = 1024
 
 # How deep $RecursionLimit = Infinity, as in Block[{$RecursionLimit = Infinity}, ...],
-# lets an evaluation go. It is not bounded by the 512 above because an
+# lets an evaluation go. It is not bounded by the 1024 above because an
 # evaluation runs on a thread with a stack sized for it (see
 # mathics.core.evaluation), or on a Python that checks its own C recursion.
 DEFAULT_MAX_INFINITE_RECURSION_DEPTH = 100000
 
-# Maximum number of digits allows in a string representation of a string number.
+# Maximum number of digits allowed in a string representation of a string number.
 # We picked this to be able to handle 1989 ^ 1989.
 DEFAULT_MAX_STR_DIGITS = 7000
 str_digits: str = os.environ.get("MATHICS_MAX_STR_DIGITS", str(DEFAULT_MAX_STR_DIGITS))
@@ -52,7 +52,7 @@ else:
 TIMEOUT = None
 
 # max pickle.dumps() size for storing results in DB
-# historically 10000 was used on public mathics servers
+# Historically, 10000 was used on public mathics servers
 MAX_STORED_SIZE = 10000
 
 ROOT_DIR = osp.dirname(__file__)
@@ -67,15 +67,15 @@ USER_PACKAGE_DIR = osp.join(DATA_DIR, "Packages")
 # In contrast to ROOT_DIR, LOCAL_ROOT_DIR is used in building
 # LaTeX documentation. When Mathics3 is installed, we don't want LaTeX file documentation.tex
 # to get put in the installation directory, but instead we build documentation
-# from checked-out source and that is where this should be put.
+# from checked-out source, and that is where this should be put.
 LOCAL_ROOT_DIR = get_srcdir()
 
 # Location of doctests and test results formatted for LaTeX.  This data
-# is stoared as a Python Pickle format, but storing this in JSON if
+# is stored as a Python Pickle format, but storing this in JSON if
 # possible would be preferable and faster
 
-# We need two versions of doctest data, one is in the user space which is updated with
-# local packages installed and is user writable.
+# We need two versions of doctest data; one is in the user space which is updated with
+# local packages installed and is writable by the user.
 
 
 DOCTEST_LATEX_DATA_PCL = os.environ.get(
@@ -83,7 +83,7 @@ DOCTEST_LATEX_DATA_PCL = os.environ.get(
 )
 
 # We need another version of doctest data as a fallback, and that is distributed with the
-# package. It is note user writable and not in the user space.
+# package. It is not writable by the user and is not in the user space.
 
 DOCTEST_SYSTEM_LATEX_DATA_PCL = os.environ.get(
     "DOCTEST_SYSTEM_LATEX_DATA_PCL",
@@ -94,14 +94,14 @@ DOC_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "documentation")
 DOC_LATEX_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "latex")
 DOC_LATEX_FILE = osp.join(DOC_LATEX_DIR, "documentation.tex")
 
-# Set this True if you prefer 12 hour time to be the default
+# Set this True if you prefer 12-hour time to be the default
 TIME_12HOUR = False
 
-# Leave this True unless you have specific reason for not permitting
+# Leave this True unless you have a specific reason for not permitting
 # users to access local files.
 ENABLE_FILES_MODULE = True
 
-# Leave this True unless you have specific reason for not permitting
+# Leave this True unless you have a specific reason for not permitting
 # users to execute system commands.
 # If MATHICS3_SANDBOX environment variable is set, this defaults to False.
 ENABLE_SYSTEM_COMMANDS = (
@@ -141,7 +141,7 @@ def get_doctest_latex_data_path(should_be_readable=False, create_parent=False) -
     """Returns a string path where we can find Python Pickle doctest data for LaTeX
     processing.
 
-    If `should_be_readable` is True, the we will check to see whether
+    If `should_be_readable` is True, then we will check to see whether
     this file is readable (which also means it exists). If not, we'll
     return the `DOCTEST_SYSTEM_DATA_PATH`.
 
