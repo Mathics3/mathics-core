@@ -51,7 +51,7 @@ OUTPUT_FORMS: set[Symbol] = set()
 
 class Definition:
     """
-    A Definition is a collection of ``Rule``s and attributes are associated with ``Symbol``.
+    A Definition is a collection of ``Rule``s and attributes which are associated with ``Symbol``.
 
     The ``Rule``s are internally organized in terms of the context of application in
     ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
@@ -137,7 +137,7 @@ class Definition:
 
     def add_rule_at(self, rule: BaseRule, rule_list_name: str) -> bool:
         """
-        Add `rule` to the set of rules in the bfield with the attribute `rule_list_name`
+        Add `rule` to the set of rules in the field with the attribute `rule_list_name`
         """
         values = self.get_values_list(rule_list_name)
         length = len(values)
@@ -254,7 +254,7 @@ class Definition:
 class Definitions:
     """The state of one instance of the Mathics3 interpreter is stored in this object.
 
-    The state is then stored as ``Definition``objects of the different
+    The state is then stored as ``Definition`` objects of the different
     symbols defined during runtime.
 
     In the current implementation, the ``Definitions`` object stores
@@ -1470,7 +1470,7 @@ def merge_definitions(candidates: list[Definition]) -> Definition:
         # because of this, ``Unprotect[Expand]; ClearAll[Expand]; Options[Expand]``
         # returns the builtin options of ``Expand`` instead of an empty list, like
         # in WMA.
-        # To get this behavior, we couldb pick the options from the first
+        # To get this behavior, we could pick the options from the first
         # candidate.
         options.update(candidate.options)
 
@@ -1490,7 +1490,7 @@ def load_builtin_definitions(
     extension_modules: tuple = (),
 ):
     """
-    Load definitions from Builtin classes, autoload files,bbb and extension modules.
+    Load definitions from Builtin classes, autoload files, and extension modules.
     """
     from mathics.core.load_builtin import (
         definition_contribute,
