@@ -1,5 +1,4 @@
 # cython: language_level=3
-# -*- coding: utf-8 -*-
 import re
 import sys
 from typing import TYPE_CHECKING, Any, ClassVar, FrozenSet, Iterable, Optional, cast
@@ -244,7 +243,7 @@ class Atom(BaseElement):
         return self.class_head_name
 
     @property
-    def int_value(self) -> Optional[int]:
+    def int_value(self) -> int | None:
         return None
 
     @property
@@ -258,7 +257,7 @@ class Atom(BaseElement):
     def has_form(
         self,
         heads: Iterable["Symbol"] | "Symbol",
-        *element_counts: Optional[int],
+        *element_counts: int | None,
     ) -> bool:
         # A symbol never has form head[...]
         return False
@@ -339,7 +338,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     """
 
     # Declare slots for all instance attributes
-    __slots__ = ("_short_name", "name", "hash", "sympy")
+    __slots__ = ("_short_name", "hash", "name", "sympy")
 
     _short_name: str
     hash: int
@@ -355,7 +354,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     _symbols: ClassVar[dict[str, "Symbol"]] = {}
 
     class_head_name: ClassVar[str] = "System`Symbol"
-    sympy: Optional[Any]
+    sympy: Any | None
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
@@ -424,7 +423,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def do_copy(self) -> "Symbol":
         return Symbol(self.name)
 
-    def equal2(self, rhs: Any) -> Optional[bool]:
+    def equal2(self, rhs: Any) -> bool | None:
         """Mathics3 two-argument Equal (==)"""
 
         if self is rhs:
@@ -594,7 +593,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return super(Symbol, self).pattern_precedence
+        return super().pattern_precedence
 
     def replace_vars(
         self, vars: dict[str, BaseElement], options={}, in_function=True
@@ -603,7 +602,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         # assert all(fully_qualified_symbol_name(v) for v in vars)
         return vars.get(self.name, self)
 
-    def round_to_float(self, evaluation=None) -> Optional[float]:
+    def round_to_float(self, evaluation=None) -> float | None:
         """
         Round to a Python float. Return None if rounding is not possible.
         This can happen if self or evaluation is NaN.
@@ -763,7 +762,7 @@ class BooleanType(SymbolConstant):
         return True
 
 
-def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
+def symbol_set(*symbols: Symbol) -> frozenset[Symbol]:
     """
     Return a frozenset of symbols from a Symbol arguments.
     We will use this in testing membership, so an immutable object is fine.

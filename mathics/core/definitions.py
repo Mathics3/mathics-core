@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Objects that represent the `Definition` associated with a `Symbol` and
 groups of `Definitions`.
@@ -10,18 +9,9 @@ import os.path as osp
 import pickle
 import re
 from collections import defaultdict
-from itertools import chain, islice
-from typing import (
-    Dict,
-    Hashable,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Union,
-)
+from collections.abc import Hashable, Iterable, Sequence
+from itertools import chain, islice, pairwise
+from typing import Optional
 
 from mathics_scanner.tokeniser import full_names_pattern
 
@@ -48,14 +38,14 @@ from mathics.settings import ROOT_DIR
 # More symbols are populated from FormMeta classes (see `mathics.builtin.forms.base`)
 
 # The contents of $BoxForms.
-BOX_FORMS: Set[Symbol] = set()
+BOX_FORMS: set[Symbol] = set()
 
 # The contents of $PrintForms.
-PRINT_FORMS: Set[Symbol] = set()
+PRINT_FORMS: set[Symbol] = set()
 # PRINT_FORMS.update(BOX_FORMS)
 
 # The contents of $OutputForms.
-OUTPUT_FORMS: Set[Symbol] = set()
+OUTPUT_FORMS: set[Symbol] = set()
 # OUTPUT_FORMS.update(PRINT_FORMS)
 
 
@@ -67,56 +57,72 @@ class Definition:
     ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
     """
 
+    # Use slots for instance attributes.
+    __slots__ = (
+        "__dict__",  # Allows dynamic attributes and __dict__ access
+        "attributes",
+        "builtin",
+        "changed",
+        "defaultvalues",
+        "downvalues",
+        "formatvalues",
+        "is_numeric",
+        "messages",
+        "name",
+        "nvalues",
+        "options",
+        "ownvalues",
+        "rule_index",
+        "subvalues",
+        "symbol",
+        "upvalues",
+    )
+
     def __init__(
         self,
         name,
         *,
-        rules_dict: Optional[dict] = None,
-        rules: tuple = tuple(),
+        rules_dict: dict | None = None,
+        rules: tuple = (),
         attributes: int = A_NO_ATTRIBUTES,
         builtin=None,
         is_numeric: bool = False,
     ) -> None:
         rules_dict = rules_dict or {}
-        self.name = name
-        self.symbol = Symbol(name)
+
+        self.attributes = attributes
+        self.builtin = builtin
+        self.changed = 0
         self.defaultvalues = rules_dict.get("defaultvalues", [])
         self.downvalues = rules_dict.get("downvalues", [])
         self.formatvalues = rules_dict.get("formatvalues", {})
-        self.nvalues = rules_dict.get("nvalues", [])
-        self.ownvalues = rules_dict.get("ownvalues", [])
-        self.subvalues = rules_dict.get("subvalues", [])
-        self.upvalues = rules_dict.get("upvalues", [])
-        self.options: dict[str, BaseElement] = rules_dict.get("options", {})
+        self.is_numeric = is_numeric
         self.messages = rules_dict.get("messages", [])
+        self.name = name
+        self.nvalues = rules_dict.get("nvalues", [])
+        self.options: dict[str, BaseElement] = rules_dict.get("options", {})
+        self.ownvalues = rules_dict.get("ownvalues", [])
 
         # For each rule list, an index of its unconditional rules by the
         # fingerprint of their patterns, see ``insert_rule()``. It belongs to
         # the list object it was built for and is rebuilt when the list is
         # replaced.
-        self.rule_index: Dict[str, Tuple[list, dict]] = {}
+        self.rule_index: dict[str, tuple[list, dict]] = {}
+        self.subvalues = rules_dict.get("subvalues", [])
+        self.symbol = Symbol(name)
+        self.upvalues = rules_dict.get("upvalues", [])
 
-        self.is_numeric = is_numeric
-        self.attributes = attributes
-        self.builtin = builtin
-        self.changed = 0
         for rule in rules:
             if not self.add_rule(rule):
                 print(f"{rule.pattern.expr} could not be associated with {self.name}")
 
     def __repr__(self) -> str:
         repr_str = (
-            "<Definition: name: {},"
-            "\n ownvalues: {},\n"
-            " downvalues: {},\n"
-            " formats: {},\n"
-            " attributes: {}>"
-        ).format(
-            self.name,
-            self.ownvalues,
-            self.downvalues,
-            self.formatvalues,
-            self.attributes,
+            f"<Definition: name: {self.name},"
+            f"\n ownvalues: {self.ownvalues},\n"
+            f" downvalues: {self.downvalues},\n"
+            f" formats: {self.formatvalues},\n"
+            f" attributes: {self.attributes}>"
         )
         return repr_str
 
@@ -159,7 +165,7 @@ class Definition:
         return index.rules_for(expression)
 
     def _get_literal_index(
-        self, rule_list_name: str, values: List[BaseRule]
+        self, rule_list_name: str, values: list[BaseRule]
     ) -> Optional["LiteralRuleIndex"]:
         """
         The literal index of `values`, the rule list `rule_list_name`,
@@ -176,7 +182,7 @@ class Definition:
     def _update_literal_index(
         self,
         rule_list_name: str,
-        values: List[BaseRule],
+        values: list[BaseRule],
         rule: BaseRule,
         replaced: bool,
     ) -> None:
@@ -193,7 +199,7 @@ class Definition:
         if not (is_literal_rule(rule) and index.add(rule, replaced)):
             del cache[rule_list_name]
 
-    def get_rule_index(self, rule_list_name: str, values: List[BaseRule]) -> dict:
+    def get_rule_index(self, rule_list_name: str, values: list[BaseRule]) -> dict:
         """
         Return the index of the unconditional rules in `values`, the rule
         list `rule_list_name`, by pattern fingerprint.
@@ -204,7 +210,7 @@ class Definition:
         indexed = self.rule_index.get(rule_list_name)
         if indexed is not None and indexed[0] is values:
             return indexed[1]
-        index: Dict[Hashable, List[BaseRule]] = {}
+        index: dict[Hashable, list[BaseRule]] = {}
         for existing in values:
             if not is_conditional_rule(existing):
                 index.setdefault(pattern_fingerprint(existing.pattern.expr), []).append(
@@ -252,7 +258,7 @@ class Definitions:
     symbols defined during the runtime.
 
     In the current implementation, the ``Definitions`` object stores
-    ``Definition`` s in four dictionaries:
+    ``Definition``s in four dictionaries:
 
     - builtins: stores the definitions of the ``Builtin`` symbols
     - pymathics: stores the definitions of the ``Builtin`` symbols added from pymathics
@@ -265,43 +271,72 @@ class Definitions:
     restore Rules in order to make startup time faster.
     """
 
+    # Use slots for instance attributes.
+    __slots__ = (
+        "_change_log",
+        "_change_marks",
+        "_packages",
+        "boxforms",
+        "builtin",
+        "context_path",
+        "current_context",
+        "deferred_module_variables",
+        "definitions_cache",
+        "inputfile",
+        "lookup_cache",
+        "now",
+        "outputforms",
+        "printforms",
+        "proxy",
+        "pymathics",
+        "timing_trace_evaluation",
+        "trace_evaluation",
+        "trace_show_rewrite",
+        "user",
+    )
+
     def __init__(
         self,
         add_builtin: bool = False,
-        builtin_filename: Optional[str] = None,
+        builtin_filename: str | None = None,
         extension_modules: tuple = (),
     ) -> None:
-        self._packages: List[str] = []
-        self.builtin: Dict[str, Definition] = {}
+
+        # Change tracking, see begin_change_tracking(): the value of `now`
+        # when each open tracking began, and the definitions changed since
+        # the outermost one began.
+        self._change_log: list[Definition] = []
+        self._change_marks: list[int] = []
+
+        self._packages: list[str] = []
         self.boxforms = list(BOX_FORMS)
-        self.context_path: Tuple[str, ...] = (
+        self.builtin: dict[str, Definition] = {}
+        self.context_path: tuple[str, ...] = (
             "System`",
             "Global`",
         )
         self.current_context = "Global`"
-        self.definitions_cache: Dict[str, Definition] = {}
-        self.lookup_cache: Dict[str, str] = {}
-        self.now = 0  # increments whenever something is updated
-        # Change tracking, see begin_change_tracking(): the value of `now`
-        # when each open tracking began, and the definitions changed since
-        # the outermost one began.
-        self._change_marks: List[int] = []
-        self._change_log: List[Definition] = []
+
         # The local variables of Modules that left the decision to remove
         # them to an enclosing Module (see Module.eval).
-        self.deferred_module_variables: List[str] = []
+        self.deferred_module_variables: list[str] = []
+
+        self.definitions_cache: dict[str, Definition] = {}
+        self.inputfile = ""
+        self.lookup_cache: dict[str, str] = {}
+        self.now = 0  # increments whenever something is updated
+
         self.outputforms = list(OUTPUT_FORMS)
         self.printforms = list(PRINT_FORMS)
-        self.proxy: Dict[str, Set[str]] = defaultdict(set)
-        self.pymathics: Dict[str, Definition] = {}
-        self.user: Dict[str, Definition] = {}
-        self.inputfile = ""
+        self.proxy: dict[str, set[str]] = defaultdict(set)
+        self.pymathics: dict[str, Definition] = {}
         self.timing_trace_evaluation = False
 
         # TraceEvaluation uses these to
         # decided what information to show
         self.trace_evaluation = False
         self.trace_show_rewrite = False
+        self.user: dict[str, Definition] = {}
 
         if add_builtin:
             load_builtin_definitions(self, builtin_filename, extension_modules)
@@ -315,7 +350,7 @@ class Definitions:
         self.clear_definitions_cache(name)
 
     def add_format(
-        self, name: str, rule: BaseRule, form_names: Union[str, list] = ""
+        self, name: str, rule: BaseRule, form_names: str | list = ""
     ) -> None:
         """Add a format rule"""
         definition = self.get_user_definition(self.lookup_name(name))
@@ -344,9 +379,7 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_rule(
-        self, name: str, rule: BaseRule, position: Optional[str] = None
-    ) -> bool:
+    def add_rule(self, name: str, rule: BaseRule, position: str | None = None) -> bool:
         """Add a rule for the Symbol `name` in the list `pos`."""
         definition = self.get_user_definition(self.lookup_name(name))
         if position is None:
@@ -373,7 +406,7 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def clear_cache(self, name: Optional[str] = None) -> None:
+    def clear_cache(self, name: str | None = None) -> None:
         """Clear the definitions cache. If `name` is provided,
         just remove the definition for `name` from the definition cache.
         """
@@ -427,7 +460,7 @@ class Definitions:
         """Return a string with the current context"""
         return self.current_context
 
-    def get_context_path(self) -> Tuple[str, ...]:
+    def get_context_path(self) -> tuple[str, ...]:
         """return a tuple with the context path"""
         return self.context_path
 
@@ -460,7 +493,7 @@ class Definitions:
 
     def get_accessible_contexts(self) -> set:
         """Return the contexts reachable though $Context or $ContextPath."""
-        accessible_ctxts = set(ctx for ctx in self.context_path)
+        accessible_ctxts = set(self.context_path)
         accessible_ctxts.add(self.current_context)
         return accessible_ctxts
 
@@ -472,9 +505,7 @@ class Definitions:
         """
         return self.get_definition(name).attributes
 
-    def get_config_value(
-        self, name: str, default: Optional[int] = None
-    ) -> Optional[int]:
+    def get_config_value(self, name: str, default: int | None = None) -> int | None:
         "Infinity -> None, otherwise returns integer."
         try:
             value = self.get_ownvalue(name)
@@ -486,7 +517,7 @@ class Definitions:
             return None
         return int(value.to_python())  # .int_value)
 
-    def get_defaultvalues(self, name: str) -> List[BaseRule]:
+    def get_defaultvalues(self, name: str) -> list[BaseRule]:
         """Return the list of defaultvalues"""
         return self.get_definition(name).defaultvalues
 
@@ -558,7 +589,7 @@ class Definitions:
 
         return definition
 
-    def get_downvalues(self, name: str) -> List[BaseRule]:
+    def get_downvalues(self, name: str) -> list[BaseRule]:
         """Return the list of downvalues"""
         return self.get_definition(name).downvalues
 
@@ -571,7 +602,7 @@ class Definitions:
         """
         return self.get_definition(name).get_rules_for(rule_list_name, expression)
 
-    def get_formats(self, name: str, format_name="") -> List[BaseRule]:
+    def get_formats(self, name: str, format_name="") -> list[BaseRule]:
         """
         Return a list of format rules associated with `name`.
         if `format_name` is given, looks to the rules associated
@@ -594,7 +625,7 @@ class Definitions:
         """Get $Line, the current input line number"""
         return self.get_config_value("System`$Line", 1) or 1
 
-    def get_matching_names(self, pattern: Union[str, re.Pattern]) -> List[str]:
+    def get_matching_names(self, pattern: str | re.Pattern) -> list[str]:
         """
         Return a list of the symbol names matching a string pattern.
 
@@ -635,8 +666,8 @@ class Definitions:
             else:
                 short_pattern = pattern
                 # start with a group matching the accessible contexts
-                ctx_pattern = "(?:%s)" % "|".join(
-                    re.escape(c) for c in self.get_accessible_contexts()
+                ctx_pattern = "(?:{})".format(
+                    "|".join(re.escape(c) for c in self.get_accessible_contexts())
                 )
 
             short_pattern = (
@@ -648,7 +679,7 @@ class Definitions:
 
         return [name for name in self.get_names() if regex.match(name)]
 
-    def get_nvalues(self, name: str) -> List[BaseRule]:
+    def get_nvalues(self, name: str) -> list[BaseRule]:
         """Return the list of nvalues"""
         return self.get_definition(name).nvalues
 
@@ -671,11 +702,11 @@ class Definitions:
         raise ValueError
         # return None
 
-    def get_ownvalues(self, name: str) -> List[BaseRule]:
+    def get_ownvalues(self, name: str) -> list[BaseRule]:
         """Return the list of ownvalues"""
         return self.get_definition(name).ownvalues
 
-    def get_package_names(self) -> List[Optional[str]]:
+    def get_package_names(self) -> list[str | None]:
         """Return the list of names of the packages loaded in the system."""
         try:
             packages = self.get_ownvalue("System`$Packages")
@@ -690,11 +721,11 @@ class Definitions:
         ]
         # return sorted({name.split("`")[0] for name in self.get_names()})
 
-    def get_subvalues(self, name: str) -> List[BaseRule]:
+    def get_subvalues(self, name: str) -> list[BaseRule]:
         """Return the list of subvalues"""
         return self.get_definition(name).subvalues
 
-    def get_upvalues(self, name: str) -> List[BaseRule]:
+    def get_upvalues(self, name: str) -> list[BaseRule]:
         """Return the list of upvalues"""
         return self.get_definition(name).upvalues
 
@@ -863,7 +894,7 @@ class Definitions:
         """Whether a change tracking (begin_change_tracking) is open."""
         return bool(self._change_marks)
 
-    def end_change_tracking(self, token: int) -> List[Definition]:
+    def end_change_tracking(self, token: int) -> list[Definition]:
         """Close the tracking opened by begin_change_tracking() that returned
         `token`, and return the definitions changed since it began (possibly
         with repetitions, and possibly no longer in ``self.user``)."""
@@ -948,7 +979,7 @@ class Definitions:
         self.add_rule(name, RewriteRule(Symbol(symbol_name), value))
         self.clear_cache(symbol_name)
 
-    def set_values(self, name: str, values: str, rules: List[BaseRule]) -> None:
+    def set_values(self, name: str, values: str, rules: list[BaseRule]) -> None:
         """Set a list of rules associated with the Symbol `name`"""
         pos = _valuesname(values)
         definition = self.get_user_definition(self.lookup_name(name))
@@ -1022,7 +1053,7 @@ def _valuesname(name: str) -> str:
 # FIXME: Return an enumeration, not a Optional[str].
 def determine_value_role(
     pattern: BaseElement | BasePattern, target_symbol: Symbol
-) -> Optional[str]:
+) -> str | None:
     """Determine the kind of Value (DownValue, OwnValue, UpValue, etc.) is getting
     refered to for `target_symbol`.
 
@@ -1070,9 +1101,11 @@ def determine_value_role(
         return determine_value_role(pattern.get_elements()[1], target_symbol)
     if pattern.has_form(SymbolCondition, 2):
         return determine_value_role(pattern.get_elements()[0], target_symbol)
-    if pattern.has_form(BLANK_PATTERN_HEADS, 1):
-        if target_symbol is pattern.get_elements()[0]:
-            return "downvalues"
+    if (
+        pattern.has_form(BLANK_PATTERN_HEADS, 1)
+        and target_symbol is pattern.get_elements()[0]
+    ):
+        return "downvalues"
     if pattern.has_form(SymbolVerbatim, 1):
         content = pattern.get_elements()[0]
         if target_symbol is content:
@@ -1142,7 +1175,7 @@ def pattern_fingerprint(expr: BaseElement) -> Hashable:
 
 
 def insert_rule(
-    values: List[BaseRule], rule: BaseRule, index: Optional[dict] = None
+    values: list[BaseRule], rule: BaseRule, index: dict | None = None
 ) -> None:
     """
     Add a new rule inside a list of values.
@@ -1154,7 +1187,7 @@ def insert_rule(
 
     Parameters
     ----------
-    values : List[Rule]
+    values : list[Rule]
         A list of rules.
     rule : Rule
         A new rule.
@@ -1196,7 +1229,7 @@ def insert_rule(
     bisect.insort_left(values, rule, key=lambda x: x.pattern_precedence)
 
 
-def find_rule(values: List[BaseRule], rule: BaseRule) -> Optional[int]:
+def find_rule(values: list[BaseRule], rule: BaseRule) -> int | None:
     """
     Return the position of the very object `rule` in `values`, or None.
     `values` is normally sorted by ``pattern_precedence`` (``insert_rule()``
@@ -1318,14 +1351,14 @@ class LiteralRuleIndex:
         self.other_key_set = set(other_keys)
 
     @classmethod
-    def build(cls, values: List[BaseRule]) -> Optional["LiteralRuleIndex"]:
+    def build(cls, values: list[BaseRule]) -> Optional["LiteralRuleIndex"]:
         """The index of `values`, or None if it can not be indexed."""
         try:
             keys = [rule.pattern_precedence for rule in values]
-            if any(later < earlier for earlier, later in zip(keys, keys[1:])):
+            if any(later < earlier for earlier, later in pairwise(keys)):
                 return None
-            table: Dict[tuple, List[BaseRule]] = {}
-            others: List[BaseRule] = []
+            table: dict[tuple, list[BaseRule]] = {}
+            others: list[BaseRule] = []
             other_keys: list = []
             # The sort keys of the literal rules; many literal rules
             # (f[1], f[2], ...) share one. It is only checked against the
@@ -1392,7 +1425,7 @@ class LiteralRuleIndex:
         return True
 
 
-def merge_definitions(candidates: List[Definition]) -> Definition:
+def merge_definitions(candidates: list[Definition]) -> Definition:
     """Build a Definition object by merging other definitions"""
     rules: dict = {
         key: []
@@ -1412,7 +1445,7 @@ def merge_definitions(candidates: List[Definition]) -> Definition:
     is_numeric = first_candidate.is_numeric
     attributes = first_candidate.attributes
     builtin_instance = candidates[-1].builtin
-    formatvalues: Dict[str, List[BaseRule]] = {}
+    formatvalues: dict[str, list[BaseRule]] = {}
     options: dict = {}
     rules["formatvalues"] = formatvalues
 
@@ -1453,8 +1486,8 @@ def merge_definitions(candidates: List[Definition]) -> Definition:
 
 def load_builtin_definitions(
     self: Definitions,
-    builtin_filename: Optional[str] = None,
-    extension_modules: tuple = tuple(),
+    builtin_filename: str | None = None,
+    extension_modules: tuple = (),
 ):
     """
     Load definitions from Builtin classes, autoload files and extension modules.

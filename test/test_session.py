@@ -8,9 +8,12 @@ Basic tests for the MathicsSession class.
 from mathics.core.atoms import Integer1, Integer2, IntegerM1
 from mathics.core.evaluation import Result
 from mathics.core.expression import Expression
+from mathics.core.load_builtin import import_and_load_builtins
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolPower, SymbolTimes
 from mathics.session import MathicsSession
+
+import_and_load_builtins()
 
 session = MathicsSession()
 
