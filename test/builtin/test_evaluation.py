@@ -37,7 +37,7 @@ from mathics.core import evaluation as core_evaluation
         ),
         (
             "ClearAll[f]; f[n_] := 1 + f[n + 1]; Block[{$RecursionLimit = Infinity}, f[0]]",
-            ("Recursion depth of 1024 exceeded.",),
+            ("Recursion depth of 100000 exceeded.",),
             "$Aborted",
             "Infinity goes as deep as the Python stack is set up for, then stops",
         ),
