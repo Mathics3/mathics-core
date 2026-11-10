@@ -156,7 +156,7 @@ class Atom(BaseElement):
     _head_name = ""
     _symbol_head = None
     class_head_name: ClassVar[str] = ""
-    original: "Atom" | None = None
+    original: "Atom | None" = None
 
     def __repr__(self) -> str:
         return f"<{self.get_atom_name()}: {self}>"
@@ -257,7 +257,7 @@ class Atom(BaseElement):
 
     def has_form(
         self,
-        heads: Iterable["Symbol"] | "Symbol",
+        heads: 'Iterable["Symbol"] | "Symbol"',
         *element_counts: int | None,
     ) -> bool:
         # A symbol never has form head[...]
