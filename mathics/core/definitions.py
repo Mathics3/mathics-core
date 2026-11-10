@@ -59,7 +59,7 @@ class Definition:
 
     # Use slots for instance attributes.
     __slots__ = (
-        "__dict__",  # Allows dynamic attributes and __dict__ access
+        "_literal_index",
         "attributes",
         "builtin",
         "changed",
@@ -90,6 +90,9 @@ class Definition:
     ) -> None:
         rules_dict = rules_dict or {}
 
+        # Built lazily for rule lists that are large enough to benefit.
+        self._literal_index: dict | None = None
+
         self.attributes = attributes
         self.builtin = builtin
         self.changed = 0
@@ -108,6 +111,7 @@ class Definition:
         # the list object it was built for and is rebuilt when the list is
         # replaced.
         self.rule_index: dict[str, tuple[list, dict]] = {}
+
         self.subvalues = rules_dict.get("subvalues", [])
         self.symbol = Symbol(name)
         self.upvalues = rules_dict.get("upvalues", [])
@@ -171,7 +175,10 @@ class Definition:
         The literal index of `values`, the rule list `rule_list_name`,
         built when first needed. None when the list can not be indexed.
         """
-        cache = self.__dict__.setdefault("literal_index", {})
+        cache = self._literal_index
+        if cache is None:
+            cache = self._literal_index = {}
+
         entry = cache.get(rule_list_name)
         if entry is not None and entry[0] is values:
             return entry[1]
@@ -190,7 +197,7 @@ class Definition:
         Keep the literal index of `values` right after `rule` was inserted;
         `replaced` tells whether it took the place of an existing rule.
         """
-        cache = self.__dict__.get("literal_index")
+        cache = self._literal_index
         if not cache or rule_list_name not in cache:
             return
         values_indexed, index = cache[rule_list_name]
@@ -241,7 +248,8 @@ class Definition:
             for index, existing in enumerate(values):
                 if existing.pattern.expr.sameQ(lhs):
                     del values[index]
-                    self.__dict__.get("literal_index", {}).pop(position, None)
+                    if self._literal_index is not None:
+                        self._literal_index.pop(position, None)
                     return True
         return False
 
