@@ -18,7 +18,7 @@ from mathics_scanner.location import ContainerKind
 
 from mathics.core.atoms import String
 from mathics.core.definitions import Definitions
-from mathics.core.evaluation import Evaluation, Result
+from mathics.core.evaluation import Evaluation, Result, set_python_recursion_limit
 from mathics.core.parser import MathicsSingleLineFeeder, parse
 from mathics.core.symbols import SymbolNull
 
@@ -206,6 +206,12 @@ class MathicsSession:
         self.last_result = None
         definitions.set_line_no(1)
         self.definitions = definitions
+
+        # An assignment to $RecursionLimit also set Python's limit. The new
+        # definitions have the default $RecursionLimit, so go back to its limit.
+        from mathics.builtin.evaluation import RecursionLimit
+
+        set_python_recursion_limit(RecursionLimit.value)
 
     def evaluate(self, str_expression, timeout=None, form=None):
         """Parse str_expression and evaluate using the `evaluate` method of the Expression"""
