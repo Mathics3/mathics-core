@@ -166,10 +166,12 @@ def trace_evaluate(func: Callable) -> Callable:
             # boxing temporarily.
             phase_name = "Rewriting" if is_performing_rewrite(func) else "Evaluating"
             evaluation.is_boxing = True
-            trace_evaluate_action = trace_evaluate_on_call(
-                expr, evaluation, phase_name, func
-            )
-            evaluation.is_boxing = was_boxing
+            try:
+                trace_evaluate_action = trace_evaluate_on_call(
+                    expr, evaluation, phase_name, func
+                )
+            finally:
+                evaluation.is_boxing = was_boxing
         if trace_evaluate_action is None:
             result = func(expr, evaluation)
             if trace_evaluate_on_return is not None and not was_boxing:
