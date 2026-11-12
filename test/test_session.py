@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 Basic tests for the MathicsSession class.
 
 """
-
 
 from mathics.core.atoms import Integer1, Integer2, IntegerM1
 from mathics.core.evaluation import Result

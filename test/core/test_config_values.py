@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 $RecursionLimit and $IterationLimit are looked up by their full names at
 each evaluation step, not resolved through $Context and $ContextPath.
@@ -8,20 +7,20 @@ from test.helper import check_evaluation, session
 
 import pytest
 
+from mathics.core.definitions import Definitions
 from mathics.core.interrupt import AbortInterrupt
 
 
 def test_limits_do_not_resolve_names(monkeypatch):
-    definitions = session.definitions
     looked_up = []
-    original = definitions.lookup_name
+    original = Definitions.lookup_name
 
-    def recording(name):
+    def recording(self, name):
         if name in ("$RecursionLimit", "$IterationLimit"):
             looked_up.append(name)
-        return original(name)
+        return original(self, name)
 
-    monkeypatch.setattr(definitions, "lookup_name", recording)
+    monkeypatch.setattr(Definitions, "lookup_name", recording)
     session.evaluate("Do[cvF[i], {i, 50}]")
     assert looked_up == []
 
