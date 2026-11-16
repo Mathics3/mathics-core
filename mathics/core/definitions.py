@@ -284,30 +284,30 @@ class Definitions:
 
     # Use slots for instance attributes.
     # In contrast to the use of slots for atoms like Complex, or Integer,
-    # Benchmarking is not showing a visible improvement here. So this may be wishful thinking.
-    # We may remove the below assignment if it causes a problem.
-    __slots__ = (
-        "_change_log",
-        "_change_marks",
-        "_packages",
-        "boxforms",
-        "builtin",
-        "context_path",
-        "current_context",
-        "deferred_module_variables",
-        "definitions_cache",
-        "inputfile",
-        "lookup_cache",
-        "now",
-        "outputforms",
-        "printforms",
-        "proxy",
-        "pymathics",
-        "timing_trace_evaluation",
-        "trace_evaluation",
-        "trace_show_rewrite",
-        "user",
-    )
+    # Benchmarking is not showing a visible improvement here.
+    # We might include the below assignment if there is some benefit.
+    # __slots__ = (
+    #     "_change_log",
+    #     "_change_marks",
+    #     "_packages",
+    #     "boxforms",
+    #     "builtin",
+    #     "context_path",
+    #     "current_context",
+    #     "deferred_module_variables",
+    #     "definitions_cache",
+    #     "inputfile",
+    #     "lookup_cache",
+    #     "now",
+    #     "outputforms",
+    #     "printforms",
+    #     "proxy",
+    #     "pymathics",
+    #     "timing_trace_evaluation",
+    #     "trace_evaluation",
+    #     "trace_show_rewrite",
+    #     "user",
+    # )
 
     def __init__(
         self,
