@@ -11,8 +11,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      # Add 3.15 below when mesonpy becomes available
       matrix:
-        python-version: ['3.14', '3.13', '3.12', '3.11']
+        python-version: ['3.14', '3.13', '3.12']
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python ${{ matrix.python-version }}
