@@ -669,9 +669,12 @@ class Evaluation:
 
         if self.definitions.trace_evaluation:
             self.definitions.trace_evaluation = False
-            text = self.format_output(from_python(text), "text")
-            self.is_boxing = False
-            self.definitions.trace_evaluation = True
+            # An interrupt while formatting must not turn tracing off for good.
+            try:
+                text = self.format_output(from_python(text), "text")
+            finally:
+                self.is_boxing = False
+                self.definitions.trace_evaluation = True
         else:
             text = self.format_output(from_python(text), "text")
 

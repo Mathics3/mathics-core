@@ -334,22 +334,24 @@ def format_element(
     """
     was_boxing = evaluation.is_boxing
     evaluation.is_boxing = True
-    # InputForm and OutputForm do format in the MakeBoxes implementation.
-    if form in (SymbolInputForm, SymbolOutputForm):
-        formatted_expr = element
-    else:
-        formatted_expr = do_format(element, evaluation, form)
+    # An interrupt (a timeout, Abort[]) while formatting must not leave the
+    # session boxing: TraceEvaluation would stay off.
+    try:
+        # InputForm and OutputForm do format in the MakeBoxes implementation.
+        if form in (SymbolInputForm, SymbolOutputForm):
+            formatted_expr = element
+        else:
+            formatted_expr = do_format(element, evaluation, form)
 
-    if form not in evaluation.definitions.boxforms:
-        formatted_expr = Expression(form, formatted_expr)
-        form = SymbolStandardForm
-    result_box = apply_makeboxes_rules(formatted_expr, evaluation, form)
-    if isinstance(result_box, BoxElementMixin):
+        if form not in evaluation.definitions.boxforms:
+            formatted_expr = Expression(form, formatted_expr)
+            form = SymbolStandardForm
+        result_box = apply_makeboxes_rules(formatted_expr, evaluation, form)
+        if isinstance(result_box, BoxElementMixin):
+            return result_box
+        return eval_makeboxes_fullform_recursive(element, evaluation)
+    finally:
         evaluation.is_boxing = was_boxing
-        return result_box
-    result = eval_makeboxes_fullform_recursive(element, evaluation)
-    evaluation.is_boxing = was_boxing
-    return result
 
 
 def to_boxes(

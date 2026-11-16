@@ -200,11 +200,14 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list: bool):
             arg_name: Integer(arg) if isinstance(arg, int) else Real(arg)
             for arg_name, arg in zip(arg_names, args)
         }
-        value = dynamic_scoping(expr.evaluate, vars, evaluation)
-        if isinstance(value, Expression):
-            # Rationals can appear like this.
-            value = eval_N(value, evaluation)
-        evaluation.quiet_all = old_quiet_all
+        # An interrupt (a timeout, Abort[]) must not leave the session quiet.
+        try:
+            value = dynamic_scoping(expr.evaluate, vars, evaluation)
+            if isinstance(value, Expression):
+                # Rationals can appear like this.
+                value = eval_N(value, evaluation)
+        finally:
+            evaluation.quiet_all = old_quiet_all
         if expect_list:
             if value.has_form(SymbolList, None):
                 value = [extract_pyreal(item) for item in value.elements]
@@ -482,6 +485,20 @@ def eval_ListPlot(
 @Timer("eval_Plot")
 def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression:
     """
+    Evaluation part of Plot[], with messages turned off while the functions
+    are sampled.
+    """
+    prev_quiet_all, evaluation.quiet_all = evaluation.quiet_all, True
+    # An interrupt (a timeout, Abort[]) must not leave the session quiet;
+    # it would also hide the General::timeout of this very evaluation.
+    try:
+        return _eval_Plot(plot_options, options, evaluation)
+    finally:
+        evaluation.quiet_all = prev_quiet_all
+
+
+def _eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression:
+    """
     Evaluation part of Plot[]
 
     Note: (?) indicates somewhat vague guesses.
@@ -537,7 +554,6 @@ def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression
     # like the Hue.
     graphics = []
 
-    prev_quiet_all, evaluation.quiet_all = evaluation.quiet_all, True
     for index, f in enumerate(functions):
         points = []
         xvalues = []  # x value for each point in points
@@ -708,8 +724,6 @@ def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression
             mesh_points = [to_mathics_list(xx, yy) for xx, yy in points]
             graphics.append(Expression(SymbolPoint, ListExpression(*mesh_points)))
 
-    # Restore the quiet_all state
-    evaluation.quiet_all = prev_quiet_all
     return Expression(
         SymbolGraphics,
         ListExpression(*graphics),
