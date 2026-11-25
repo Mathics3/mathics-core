@@ -174,6 +174,52 @@ import pytest
             "E ^ t / 3 + 2 E ^ (4 t) / 3",
             "Riesz-Dunford time-evolution operator from Stieltjes-Pade resolvent",
         ),
+        # 9. Non-circular pure-rational ProjectiveConstant for Pi, E, Log2, GoldenRatio, Lemniscate, Gamma14, Catalan, Apery, EulerGamma
+        (
+            'Abs[ProjectiveConstant["Pi", 30] - 314159265358979323846264338328 / 10^29] < 10^-25',
+            "True",
+            "Non-circular projective Pi via Gaussian (5+i)^4(239-i) and Cayley-Pade (5,5)",
+        ),
+        (
+            'Abs[ProjectiveConstant["E", 30] - 271828182845904523536028747135 / 10^29] < 10^-25',
+            "True",
+            "Non-circular projective E via dyadic halving and Cayley-Pade (5,5)",
+        ),
+        (
+            'Abs[ProjectiveConstant["Log2", 30] - 693147180559945309417232121458 / 10^30] < 10^-25',
+            "True",
+            "Non-circular projective ln(2) via Heron descent and Cayley-Pade (5,5)",
+        ),
+        (
+            'Abs[ProjectiveConstant["GoldenRatio", 30] - 161803398874989484820458683437 / 10^29] < 10^-25',
+            "True",
+            "Non-circular projective GoldenRatio via Heron iteration",
+        ),
+        (
+            'Abs[ProjectiveConstant["Lemniscate", 30] - 262205755429211981046483958989 / 10^29] < 10^-25',
+            "True",
+            "Non-circular projective Gauss lemniscate constant varpi via AGM(1, sqrt(2))",
+        ),
+        (
+            'Abs[ProjectiveConstant["Gamma14", 30] - 362560990822190831193068515587 / 10^29] < 10^-25',
+            "True",
+            "Non-circular projective Gamma(1/4) via Gauss AGM(1, sqrt(2))",
+        ),
+        (
+            'Abs[ProjectiveConstant["Catalan", 30] - 915965594177219015054603514932 / 10^30] < 10^-25',
+            "True",
+            "Non-circular projective Catalan G via Ramanujan Log_P(2 + sqrt(3)) over Q(sqrt(3))",
+        ),
+        (
+            'Abs[ProjectiveConstant["Apery", 30] - 120205690315959428539973816151 / 10^29] < 10^-25',
+            "True",
+            "Non-circular projective Apery zeta(3) via Amdeberhan-Zeilberger rational acceleration",
+        ),
+        (
+            'Abs[ProjectiveConstant["EulerGamma", 30] - 577215664901532860606512090082 / 10^30] < 10^-25',
+            "True",
+            "Non-circular projective Euler-Mascheroni gamma via Brent-McMillan + Log_P(n)",
+        ),
     ],
 )
 def test_projective_calculus_builtins(

@@ -23,6 +23,7 @@ from mathics.core.atoms import (
     Integer10,
     IntegerM1,
     Number,
+    PrecisionReal,
     Rational,
     Real,
     String,
@@ -98,6 +99,7 @@ from mathics.eval.numbers.calculus.projective_integrator import (
     eval_inverse_laplace_transform_projective,
     eval_laplace_transform_projective,
     eval_pade_approximant,
+    eval_projective_constant,
     eval_projective_integrate,
     eval_residue_projective,
     eval_stieltjes_pade_resolvent,
@@ -2933,5 +2935,66 @@ class StieltjesPadeResolvent(Builtin):
         if res is None:
             return None
         return from_sympy(res)
+
+
+class ProjectiveConstant(Builtin):
+    """
+    <dl>
+      <dt>'ProjectiveConstant'[$name$, $digits$]
+      <dd>computes the fundamental mathematical constant $name$ to $digits$ decimal
+          places using pure-rational non-circular projective algorithms over
+          $\\mathbb{Q}(i, \\sqrt{d-1})$ and $\\mathbb{P}^1(\\mathbb{C})$ (Heron-Newton
+          square-root descent, Cayley-Pade $(5, 5)$ rational approximants, Gauss AGM
+          over $\\mathbb{Q}(\\sqrt{2})$, Ramanujan unit logarithm over $\\mathbb{Q}(\\sqrt{3})$,
+          and Amdeberhan-Zeilberger / Brent-McMillan rational acceleration, with zero
+          floating-point trigonometry or `mpmath` calls).
+          Supported constants: `"Pi"`, `"E"`, `"Log2"`, `"GoldenRatio"`,
+          `"Lemniscate"`, `"Gamma14"`, `"Catalan"`, `"Apery"`, `"EulerGamma"`.
+
+      <dt>'ProjectiveConstant'[$name$]
+      <dd>computes $name$ to 50 decimal digits.
+    </dl>
+
+    >> ProjectiveConstant["Pi", 30]
+     = 3.14159265358979323846264338328
+
+    >> ProjectiveConstant["Lemniscate", 30]
+     = 2.62205755429211981046483958989
+
+    >> ProjectiveConstant["Catalan", 30]
+     = 0.915965594177219015054603514932
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "non-circular pure-rational projective evaluator for fundamental mathematical constants"
+
+    @staticmethod
+    def _extract_name(name_expr) -> Optional[str]:
+        if isinstance(name_expr, String):
+            return name_expr.value
+        if isinstance(name_expr, Symbol):
+            return name_expr.short_name
+        return str(name_expr)
+
+    def eval_with_digits(self, name, digits: Integer, evaluation: Evaluation):
+        "ProjectiveConstant[name_, digits_Integer]"
+        key = self._extract_name(name)
+        if key is None:
+            return None
+        val = eval_projective_constant(key, digits.value)
+        if val is None:
+            return None
+        return PrecisionReal(val)
+
+    def eval_default(self, name, evaluation: Evaluation):
+        "ProjectiveConstant[name_]"
+        key = self._extract_name(name)
+        if key is None:
+            return None
+        val = eval_projective_constant(key, 50)
+        if val is None:
+            return None
+        return PrecisionReal(val)
+
 
 

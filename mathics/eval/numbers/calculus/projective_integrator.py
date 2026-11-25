@@ -742,3 +742,299 @@ def eval_stieltjes_pade_resolvent(
     return sp.cancel(num_poly / den_poly)
 
 
+# ---------------------------------------------------------------------------
+# 10. Non-circular Pure-Rational Projective Mathematical Constants (0 mpmath)
+# ---------------------------------------------------------------------------
+
+from decimal import Decimal, localcontext
+from fractions import Fraction
+import math as _pymath
+
+
+def _heron_sqrt_decimal(x_val: Decimal | int | Fraction, digits: int = 50) -> Decimal:
+    """Compute sqrt(x) on R>=0 via pure Heron-Newton rational iteration r_{k+1} = (r_k + x/r_k)/2."""
+    work_prec = digits + 25
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        val = (
+            Decimal(x_val.numerator) / Decimal(x_val.denominator)
+            if isinstance(x_val, Fraction)
+            else Decimal(x_val)
+        )
+        if val <= 0:
+            return Decimal(0)
+        exp10 = val.adjusted()
+        r = Decimal(2) * (Decimal(10) ** (exp10 // 2))
+        r = (r + val / r) / Decimal(2)
+        tol = Decimal(10) ** (-(digits + 18))
+        max_steps = int(_pymath.ceil(_pymath.log2(work_prec))) + 10
+        two = Decimal(2)
+        for _ in range(max_steps):
+            r_next = (r + val / r) / two
+            if abs(r_next - r) <= abs(r_next) * tol:
+                r = r_next
+                break
+            r = r_next
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +r
+
+
+def _projective_atan_decimal(t_val: Decimal | int | Fraction, digits: int = 50) -> Decimal:
+    """Compute arctan(t) on R via projective half-angle descent + diagonal (5, 5) Cayley-Pade."""
+    work_prec = digits + 25
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        u = (
+            Decimal(t_val.numerator) / Decimal(t_val.denominator)
+            if isinstance(t_val, Fraction)
+            else Decimal(t_val)
+        )
+        if u == 0:
+            return Decimal(0)
+        sign = Decimal(-1) if u < 0 else Decimal(1)
+        u = abs(u)
+        m_steps = max(int(_pymath.ceil((digits + 20) * 3.321928 / 9.5)) + 3, 10)
+        one = Decimal(1)
+        for _ in range(m_steps):
+            u = u / (one + _heron_sqrt_decimal(one + u * u, work_prec))
+        u2 = u * u
+        u4 = u2 * u2
+        num = u * (Decimal(945) + Decimal(735) * u2 + Decimal(64) * u4)
+        den = Decimal(945) + Decimal(1050) * u2 + Decimal(225) * u4
+        res = sign * (Decimal(2) ** m_steps) * (num / den)
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +res
+
+
+def _projective_log_positive_decimal(x_val: Decimal | int | Fraction, digits: int = 50) -> Decimal:
+    """Compute Log_P(x) for x > 0 via Heron square-root descent + Cayley map w=(z-1)/(z+1) + Pade (5, 5)."""
+    work_prec = digits + 25
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        cur = (
+            Decimal(x_val.numerator) / Decimal(x_val.denominator)
+            if isinstance(x_val, Fraction)
+            else Decimal(x_val)
+        )
+        mag_exp = abs(int(cur.adjusted()))
+        m_steps = (
+            max(int(_pymath.ceil((digits + 20) * 3.321928 / 9.5)) + 5, 12)
+            + int(_pymath.ceil(_pymath.log2(mag_exp + 2)))
+            + 2
+        )
+        for _ in range(m_steps):
+            cur = _heron_sqrt_decimal(cur, work_prec)
+        w = (cur - Decimal(1)) / (cur + Decimal(1))
+        w2 = w * w
+        w4 = w2 * w2
+        num = Decimal(2) * w * (Decimal(945) - Decimal(735) * w2 + Decimal(64) * w4)
+        den = Decimal(945) - Decimal(1050) * w2 + Decimal(225) * w4
+        res = (Decimal(2) ** m_steps) * (num / den)
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +res
+
+
+def projective_pi_decimal(digits: int = 50) -> Decimal:
+    """Non-circular projective Pi via Gaussian factorization (5+i)^4 (239-i) = 114244(1+i) in Z[i]."""
+    work_prec = digits + 20
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        a1 = _projective_atan_decimal(Fraction(1, 5), work_prec)
+        a2 = _projective_atan_decimal(Fraction(1, 239), work_prec)
+        pi_val = Decimal(16) * a1 - Decimal(4) * a2
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +pi_val
+
+
+def projective_e_decimal(digits: int = 50) -> Decimal:
+    """Non-circular projective Euler's number e via dyadic halving u = 1/2^m + (5, 5) Cayley-Pade."""
+    work_prec = digits + 25
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        m_steps = max(int(_pymath.ceil((digits + 20) * 3.321928 / 9.5)) + 4, 12)
+        u = Decimal(1) / (Decimal(2) ** m_steps)
+        u2 = u * u
+        u3 = u2 * u
+        u4 = u2 * u2
+        u5 = u4 * u
+        even_p = Decimal(30240) + Decimal(3360) * u2 + Decimal(30) * u4
+        odd_p = Decimal(15120) * u + Decimal(420) * u3 + u5
+        cur = (even_p + odd_p) / (even_p - odd_p)
+        for _ in range(m_steps):
+            cur = cur * cur
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +cur
+
+
+def projective_ln2_decimal(digits: int = 50) -> Decimal:
+    """Non-circular projective ln(2) = Log_P(2)."""
+    return _projective_log_positive_decimal(2, digits=digits)
+
+
+def projective_golden_ratio_decimal(digits: int = 50) -> Decimal:
+    """Projective golden ratio phi = (1 + sqrt(5)) / 2 via Heron-Newton iteration."""
+    work_prec = digits + 15
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        val = (Decimal(1) + _heron_sqrt_decimal(5, work_prec)) / Decimal(2)
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +val
+
+
+def projective_lemniscate_varpi_decimal(digits: int = 50) -> Decimal:
+    """Gauss's lemniscate constant varpi = pi / AGM(1, sqrt(2)) over Q(sqrt(2)) (d = 3)."""
+    work_prec = digits + 20
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        pi_val = projective_pi_decimal(work_prec)
+        a = Decimal(1)
+        b = _heron_sqrt_decimal(2, work_prec)
+        two = Decimal(2)
+        for _ in range(int(_pymath.ceil(_pymath.log2(work_prec))) + 4):
+            a_next = (a + b) / two
+            b_next = _heron_sqrt_decimal(a * b, work_prec)
+            if abs(a_next - b_next) <= Decimal(10) ** (-(digits + 15)):
+                a = a_next
+                break
+            a, b = a_next, b_next
+        varpi = pi_val / a
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +varpi
+
+
+def projective_gamma_quarter_decimal(digits: int = 50) -> Decimal:
+    """Gamma(1/4) = sqrt(2 * varpi * sqrt(2 * pi)) via Gauss AGM(1, sqrt(2)) over Q(sqrt(2))."""
+    work_prec = digits + 20
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        pi_val = projective_pi_decimal(work_prec)
+        varpi = projective_lemniscate_varpi_decimal(work_prec)
+        sqrt_2pi = _heron_sqrt_decimal(Decimal(2) * pi_val, work_prec)
+        g14 = _heron_sqrt_decimal(Decimal(2) * varpi * sqrt_2pi, work_prec)
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +g14
+
+
+def projective_catalan_G_decimal(digits: int = 50) -> Decimal:
+    """Catalan's constant G via Ramanujan's projective identity over Q(sqrt(3)) (d = 4):
+        G = (pi / 8) * Log_P(2 + sqrt(3)) + (3 / 8) * sum_{k=0}^oo (k!)^2 / ((2k+1)! * (2k+1)).
+    """
+    work_prec = digits + 25
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        pi_val = projective_pi_decimal(work_prec)
+        sqrt3 = _heron_sqrt_decimal(3, work_prec)
+        ln_unit = _projective_log_positive_decimal(Decimal(2) + sqrt3, work_prec)
+        s = Decimal(0)
+        term = Decimal(1)
+        tol = Decimal(10) ** (-(digits + 20))
+        for k in range(int(work_prec * 1.8) + 20):
+            contrib = term / Decimal(2 * k + 1)
+            s += contrib
+            if abs(contrib) <= tol:
+                break
+            term = term * Decimal(k + 1) / Decimal(2 * (2 * k + 3))
+        g_val = (pi_val / Decimal(8)) * ln_unit + (Decimal(3) / Decimal(8)) * s
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +g_val
+
+
+def projective_apery_zeta3_decimal(digits: int = 50) -> Decimal:
+    """Apery's constant zeta(3) via Amdeberhan-Zeilberger pure-rational hypergeometric Pade acceleration."""
+    work_prec = digits + 25
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        zeta3 = Decimal(0)
+        term_num = Decimal(1)
+        tol = Decimal(10) ** (-(digits + 20))
+        for k in range((work_prec // 3) + 12):
+            poly = Decimal(205 * k * k + 250 * k + 77)
+            sign = Decimal(-1) if (k & 1) else Decimal(1)
+            contrib = sign * poly * term_num
+            zeta3 += contrib
+            if abs(contrib) <= tol:
+                break
+            num_step = Decimal((k + 1) ** 5)
+            den_step = Decimal(32) * Decimal((2 * k + 3) ** 5)
+            term_num = term_num * num_step / den_step
+        zeta3 = zeta3 / Decimal(64)
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +zeta3
+
+
+def projective_euler_gamma_decimal(digits: int = 50) -> Decimal:
+    """Euler-Mascheroni constant gamma via Brent-McMillan rational acceleration + Log_P(n)."""
+    work_prec = digits + 25
+    with localcontext() as ctx:
+        ctx.prec = work_prec
+        n = int(digits * 1.15) + 10
+        ln_n = _projective_log_positive_decimal(n, work_prec)
+        a_term = -ln_n
+        b_term = Decimal(1)
+        u_sum = a_term
+        v_sum = b_term
+        n2 = Decimal(n * n)
+        tol = Decimal(10) ** (-(digits + 20))
+        for k in range(1, 5 * n + 30):
+            k_dec = Decimal(k)
+            b_term = b_term * n2 / (k_dec * k_dec)
+            a_term = (a_term * n2 / k_dec + b_term) / k_dec
+            u_sum += a_term
+            v_sum += b_term
+            if abs(a_term) < tol and abs(b_term) < tol:
+                break
+        gamma_val = u_sum / v_sum
+    with localcontext() as ctx:
+        ctx.prec = digits
+        return +gamma_val
+
+
+_PROJECTIVE_CONSTANT_DISPATCH = {
+    "pi": projective_pi_decimal,
+    "e": projective_e_decimal,
+    "ln2": projective_ln2_decimal,
+    "log2": projective_ln2_decimal,
+    "log[2]": projective_ln2_decimal,
+    "goldenratio": projective_golden_ratio_decimal,
+    "phi": projective_golden_ratio_decimal,
+    "lemniscate": projective_lemniscate_varpi_decimal,
+    "lemniscateconstant": projective_lemniscate_varpi_decimal,
+    "varpi": projective_lemniscate_varpi_decimal,
+    "gamma14": projective_gamma_quarter_decimal,
+    "gamma[1/4]": projective_gamma_quarter_decimal,
+    "catalan": projective_catalan_G_decimal,
+    "g": projective_catalan_G_decimal,
+    "apery": projective_apery_zeta3_decimal,
+    "zeta3": projective_apery_zeta3_decimal,
+    "zeta[3]": projective_apery_zeta3_decimal,
+    "eulergamma": projective_euler_gamma_decimal,
+    "gamma": projective_euler_gamma_decimal,
+}
+
+
+def eval_projective_constant(name: str, digits: int = 50) -> Optional[Decimal]:
+    """Evaluate a fundamental mathematical constant to `digits` precision using pure-rational
+    non-circular projective algorithms (0 mpmath).
+    """
+    if digits < 2 or digits > 2000:
+        return None
+    key = name.strip().lower().replace(" ", "")
+    if "`" in key:
+        key = key.split("`")[-1]
+    fn = _PROJECTIVE_CONSTANT_DISPATCH.get(key)
+    if fn is None:
+        return None
+    return fn(digits)
+
+
+
