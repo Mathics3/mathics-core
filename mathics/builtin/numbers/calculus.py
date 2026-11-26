@@ -23,6 +23,7 @@ from mathics.core.atoms import (
     Integer10,
     IntegerM1,
     Number,
+    PrecisionReal,
     Rational,
     Real,
     String,
@@ -91,6 +92,25 @@ from mathics.eval.numbers.calculus.integrators import (
     _internal_adaptative_simpsons_rule,
     decompose_domain,
     eval_D_to_Integral,
+)
+from mathics.eval.numbers.calculus.projective_integrator import (
+    eval_contour_integrate_projective,
+    eval_exp_to_trig_projective,
+    eval_inverse_laplace_transform_projective,
+    eval_laplace_transform_projective,
+    eval_pade_approximant,
+    eval_projective_constant,
+    eval_projective_contour_winding,
+    eval_projective_integrate,
+    eval_projective_isotropic_stencil,
+    eval_projective_quadratic_sum,
+    eval_projective_ring_point,
+    eval_residue_projective,
+    eval_stieltjes_pade_resolvent,
+    eval_trig_expand_projective,
+    eval_trig_factor_projective,
+    eval_trig_reduce_projective,
+    eval_trig_to_exp_projective,
 )
 from mathics.eval.numbers.calculus.series import (
     build_series,
@@ -1124,8 +1144,10 @@ class Integrate(SympyFunction):
             else:
                 vars.append((x, a, b))
         try:
+            proj_result = eval_projective_integrate(f_sympy, vars)
+            if proj_result is not None:
+                return from_sympy(proj_result)
             sympy_result = tracing.run_sympy(sympy.integrate, f_sympy, *vars)
-            pass
         except sympy.PolynomialError:
             return
         except ValueError:
@@ -2549,3 +2571,567 @@ def is_zero(
     threshold_expr = Expression(SymbolLog, eps_expr)
     threshold: Real = eval_N(threshold_expr, evaluation)
     return threshold.to_python() > 0
+
+
+class ContourIntegrate(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ContourIntegrate.html</url>
+
+    <dl>
+      <dt>'ContourIntegrate'[$f$, {$z$, 'Circle'[{$x_0$, $y_0$}, $r$]}]
+      <dd>computes the closed contour integral of $f$ along the circle $|z - (x_0 + i y_0)| = r$
+          on the Riemann sphere $\\mathbb{P}^1(\\mathbb{C})$ via Ostrowski-Hermite reduction
+          and Cauchy-Lagrange residues over $\\mathbb{Q}(i, \\sqrt{d-1})$.
+
+      <dt>'ContourIntegrate'[$f$, {$z$, $z_0$, $r$}]
+      <dd>computes the closed contour integral of $f$ along the circle $|z - z_0| = r$.
+    </dl>
+
+    >> ContourIntegrate[1 / (1 + z^4), {z, Circle[{0, 1}, 1]}]
+     = Sqrt[2] Pi / 2
+
+    >> ContourIntegrate[1 / (1 + z^2), {z, I, 1}]
+     = Pi
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "closed contour integration on the Riemann sphere P^1(C)"
+
+    def eval_circle(self, f, z, x0, y0, r, evaluation: Evaluation):
+        "ContourIntegrate[f_, {z_Symbol, Circle[{x0_, y0_}, r_]}]"
+        f_sympy = f.to_sympy()
+        z_sympy = z.to_sympy()
+        x0_sympy = x0.to_sympy()
+        y0_sympy = y0.to_sympy()
+        r_sympy = r.to_sympy()
+        if None in (f_sympy, z_sympy, x0_sympy, y0_sympy, r_sympy):
+            return None
+        center = x0_sympy + sympy.I * y0_sympy
+        res = eval_contour_integrate_projective(f_sympy, z_sympy, center, r_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+    def eval_center_radius(self, f, z, z0, r, evaluation: Evaluation):
+        "ContourIntegrate[f_, {z_Symbol, z0_, r_}]"
+        f_sympy = f.to_sympy()
+        z_sympy = z.to_sympy()
+        z0_sympy = z0.to_sympy()
+        r_sympy = r.to_sympy()
+        if None in (f_sympy, z_sympy, z0_sympy, r_sympy):
+            return None
+        res = eval_contour_integrate_projective(f_sympy, z_sympy, z0_sympy, r_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class PadeApproximant(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PadeApproximant.html</url>
+
+    <dl>
+      <dt>'PadeApproximant'[$expr$, {$x$, $x_0$, {$m$, $n$}}]
+      <dd>gives the $[m/n]$ Pade rational approximant to $expr$ about the point $x = x_0$.
+
+      <dt>'PadeApproximant'[$expr$, {$x$, $x_0$, $n$}]
+      <dd>gives the diagonal $[n/n]$ Pade rational approximant to $expr$ about $x = x_0$.
+    </dl>
+
+    >> PadeApproximant[Exp[x], {x, 0, {2, 2}}]
+     = (12 + 6 x + x ^ 2) / (12 - 6 x + x ^ 2)
+
+    >> PadeApproximant[ArcTan[x], {x, 0, {3, 3}}]
+     = (15 x + 4 x ^ 3) / (15 + 9 x ^ 2)
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "rational Pade approximant [m/n] about a point"
+
+    def eval_mn(self, expr, x, x0, m: Integer, n: Integer, evaluation: Evaluation):
+        "PadeApproximant[expr_, {x_Symbol, x0_, {m_Integer, n_Integer}}]"
+        f_sympy = expr.to_sympy()
+        x_sympy = x.to_sympy()
+        x0_sympy = x0.to_sympy()
+        if None in (f_sympy, x_sympy, x0_sympy):
+            return None
+        res = eval_pade_approximant(f_sympy, x_sympy, x0_sympy, m.value, n.value)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+    def eval_diag(self, expr, x, x0, n: Integer, evaluation: Evaluation):
+        "PadeApproximant[expr_, {x_Symbol, x0_, n_Integer}]"
+        return self.eval_mn(expr, x, x0, n, n, evaluation)
+
+
+class Residue(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Residue.html</url>
+
+    <dl>
+      <dt>'Residue'[$expr$, {$z$, $z_0$}]
+      <dd>finds the Cauchy-Lagrange residue of $expr$ at the point $z = z_0$ on the
+          Riemann sphere $\\mathbb{P}^1(\\mathbb{C})$ (including $z_0 = \\infty$).
+    </dl>
+
+    >> Residue[1 / (z^2 + 1), {z, I}]
+     = -I / 2
+
+    >> Residue[1 / z, {z, Infinity}]
+     = -1
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "Cauchy-Lagrange residue at a pole on P^1(C)"
+
+    def eval(self, expr, z, z0, evaluation: Evaluation):
+        "Residue[expr_, {z_Symbol, z0_}]"
+        f_sympy = expr.to_sympy()
+        z_sympy = z.to_sympy()
+        z0_sympy = z0.to_sympy()
+        if None in (f_sympy, z_sympy, z0_sympy):
+            return None
+        res = eval_residue_projective(f_sympy, z_sympy, z0_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class TrigReduce(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TrigReduce.html</url>
+
+    <dl>
+      <dt>'TrigReduce'[$expr$]
+      <dd>rewrites products and powers of trigonometric functions in $expr$ in terms
+          of trigonometric functions with combined arguments via projective $\\mathbb{P}^1$
+          reduction.
+    </dl>
+
+    >> TrigReduce[Sin[3 x] - (3 Sin[x] - 4 Sin[x]^3)]
+     = 0
+
+    >> TrigReduce[2 Sin[x] Cos[x]]
+     = Sin[2 x]
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "projective trigonometric power and product reduction"
+
+    def eval(self, expr, evaluation: Evaluation):
+        "TrigReduce[expr_]"
+        f_sympy = expr.to_sympy()
+        if f_sympy is None:
+            return None
+        res = eval_trig_reduce_projective(f_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class TrigExpand(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TrigExpand.html</url>
+
+    <dl>
+      <dt>'TrigExpand'[$expr$]
+      <dd>expands trigonometric functions of sums of angles and multiple angles via
+          projective Chebyshev-Cayley identities.
+    </dl>
+
+    >> TrigExpand[Sin[2 x]]
+     = 2 Cos[x] Sin[x]
+
+    >> TrigExpand[Cos[2 x]]
+     = -Sin[x] ^ 2 + Cos[x] ^ 2
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "expand trigonometric functions of multiple angles and sums"
+
+    def eval(self, expr, evaluation: Evaluation):
+        "TrigExpand[expr_]"
+        f_sympy = expr.to_sympy()
+        if f_sympy is None:
+            return None
+        res = eval_trig_expand_projective(f_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class TrigFactor(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TrigFactor.html</url>
+
+    <dl>
+      <dt>'TrigFactor'[$expr$]
+      <dd>factors trigonometric polynomials and sums into products of trigonometric
+          terms.
+    </dl>
+
+    >> TrigFactor[Sin[x]^2 - Cos[x]^2]
+     = -(Cos[x] - Sin[x]) (Cos[x] + Sin[x])
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "factor trigonometric expressions into products"
+
+    def eval(self, expr, evaluation: Evaluation):
+        "TrigFactor[expr_]"
+        f_sympy = expr.to_sympy()
+        if f_sympy is None:
+            return None
+        res = eval_trig_factor_projective(f_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class TrigToExp(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TrigToExp.html</url>
+
+    <dl>
+      <dt>'TrigToExp'[$expr$]
+      <dd>converts trigonometric and hyperbolic functions in $expr$ to complex
+          exponentials on $\\mathbb{P}^1(\\mathbb{Q}(i))$.
+    </dl>
+
+    >> TrigToExp[Cos[x]]
+     = E ^ (-I x) / 2 + E ^ (I x) / 2
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "convert trigonometric functions to exponentials"
+
+    def eval(self, expr, evaluation: Evaluation):
+        "TrigToExp[expr_]"
+        f_sympy = expr.to_sympy()
+        if f_sympy is None:
+            return None
+        res = eval_trig_to_exp_projective(f_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class ExpToTrig(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ExpToTrig.html</url>
+
+    <dl>
+      <dt>'ExpToTrig'[$expr$]
+      <dd>converts exponentials in $expr$ to trigonometric and hyperbolic functions.
+    </dl>
+
+    >> ExpToTrig[Exp[I x] + Exp[-I x]]
+     = 2 Cos[x]
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "convert exponentials to trigonometric and hyperbolic functions"
+
+    def eval(self, expr, evaluation: Evaluation):
+        "ExpToTrig[expr_]"
+        f_sympy = expr.to_sympy()
+        if f_sympy is None:
+            return None
+        res = eval_exp_to_trig_projective(f_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class LaplaceTransform(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LaplaceTransform.html</url>
+
+    <dl>
+      <dt>'LaplaceTransform'[$f$, $t$, $s$]
+      <dd>computes the Laplace transform $\\int_0^\\infty f(t) e^{-s t}\\,dt$.
+    </dl>
+
+    >> LaplaceTransform[Sin[t], t, s]
+     = 1 / (1 + s ^ 2)
+
+    >> LaplaceTransform[Cos[2 t], t, s]
+     = s / (4 + s ^ 2)
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "Laplace transform into the complex frequency plane"
+
+    def eval(self, f, t, s, evaluation: Evaluation):
+        "LaplaceTransform[f_, t_Symbol, s_Symbol]"
+        f_sympy = f.to_sympy()
+        t_sympy = t.to_sympy()
+        s_sympy = s.to_sympy()
+        if None in (f_sympy, t_sympy, s_sympy):
+            return None
+        res = eval_laplace_transform_projective(f_sympy, t_sympy, s_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class InverseLaplaceTransform(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/InverseLaplaceTransform.html</url>
+
+    <dl>
+      <dt>'InverseLaplaceTransform'[$F$, $s$, $t$]
+      <dd>computes the inverse Laplace transform (time-evolution operator)
+          $\\frac{1}{2\\pi i}\\oint_\\gamma F(s) e^{s t}\\,ds$ via projective
+          Lagrange residue decomposition over $\\mathbb{Q}(i, \\sqrt{d-1})$.
+    </dl>
+
+    >> InverseLaplaceTransform[1 / (1 + s^2), s, t]
+     = Sin[t]
+
+    >> InverseLaplaceTransform[(s - 2) / (s^2 - 5 s + 4), s, t]
+     = E ^ t / 3 + 2 E ^ (4 t) / 3
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "inverse Laplace transform and Riesz-Dunford time-evolution operator"
+
+    def eval(self, F, s, t, evaluation: Evaluation):
+        "InverseLaplaceTransform[F_, s_Symbol, t_Symbol]"
+        F_sympy = F.to_sympy()
+        s_sympy = s.to_sympy()
+        t_sympy = t.to_sympy()
+        if None in (F_sympy, s_sympy, t_sympy):
+            return None
+        res = eval_inverse_laplace_transform_projective(F_sympy, s_sympy, t_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class StieltjesPadeResolvent(Builtin):
+    """
+    <dl>
+      <dt>'StieltjesPadeResolvent'[{$\\mu_0$, $\\mu_1$, ..., $\\mu_{2N-1}$}, $z$]
+      <dd>constructs the exact $[N-1 / N]$ Stieltjes-Pade projective resolvent
+          $G_N(z) = \\langle \\psi_0 \\mid (z I - \\mathcal{L})^{-1} \\mid \\psi_0 \\rangle_{[N-1/N]} = P_{N-1}(z)/Q_N(z)$
+          on $\\mathbb{P}^1(\\mathbb{C})$ from $2N$ power moments $\\mu_k = \\langle \\psi_0 \\mid \\mathcal{L}^k \\mid \\psi_0 \\rangle$
+          of an infinite-dimensional Hilbert-space operator $\\mathcal{L}$.
+    </dl>
+
+    >> StieltjesPadeResolvent[{1, 3, 11, 43}, s]
+     = (-2 + s) / (4 - 5 s + s ^ 2)
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "Stieltjes-Pade projective resolvent G_N(z) of a Hilbert-space operator from its moments"
+
+    def eval(self, moments: ListExpression, z, evaluation: Evaluation):
+        "StieltjesPadeResolvent[moments_List, z_Symbol]"
+        z_sympy = z.to_sympy()
+        if z_sympy is None:
+            return None
+        m_list = [el.to_sympy() for el in moments.elements]
+        if any(m is None for m in m_list):
+            return None
+        res = eval_stieltjes_pade_resolvent(m_list, z_sympy)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class ProjectiveConstant(Builtin):
+    """
+    <dl>
+      <dt>'ProjectiveConstant'[$name$, $digits$]
+      <dd>computes the fundamental mathematical constant $name$ to $digits$ decimal
+          places using pure-rational non-circular projective algorithms over
+          $\\mathbb{Q}(i, \\sqrt{d-1})$ and $\\mathbb{P}^1(\\mathbb{C})$ (Heron-Newton
+          square-root descent, Cayley-Pade $(5, 5)$ rational approximants, Gauss AGM
+          over $\\mathbb{Q}(\\sqrt{2})$, Ramanujan unit logarithm over $\\mathbb{Q}(\\sqrt{3})$,
+          and Amdeberhan-Zeilberger / Brent-McMillan rational acceleration, with zero
+          floating-point trigonometry or `mpmath` calls).
+          Supported constants: `"Pi"`, `"E"`, `"Log2"`, `"GoldenRatio"`,
+          `"Lemniscate"`, `"Gamma14"`, `"Catalan"`, `"Apery"`, `"EulerGamma"`.
+
+      <dt>'ProjectiveConstant'[$name$]
+      <dd>computes $name$ to 50 decimal digits.
+    </dl>
+
+    >> ProjectiveConstant["Pi", 30]
+     = 3.14159265358979323846264338328
+
+    >> ProjectiveConstant["Lemniscate", 30]
+     = 2.62205755429211981046483958989
+
+    >> ProjectiveConstant["Catalan", 30]
+     = 0.915965594177219015054603514932
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "non-circular pure-rational projective evaluator for fundamental mathematical constants"
+
+    @staticmethod
+    def _extract_name(name_expr) -> Optional[str]:
+        if isinstance(name_expr, String):
+            return name_expr.value
+        if isinstance(name_expr, Symbol):
+            return name_expr.short_name
+        return str(name_expr)
+
+    def eval_with_digits(self, name, digits: Integer, evaluation: Evaluation):
+        "ProjectiveConstant[name_, digits_Integer]"
+        key = self._extract_name(name)
+        if key is None:
+            return None
+        val = eval_projective_constant(key, digits.value)
+        if val is None:
+            return None
+        return PrecisionReal(val)
+
+    def eval_default(self, name, evaluation: Evaluation):
+        "ProjectiveConstant[name_]"
+        key = self._extract_name(name)
+        if key is None:
+            return None
+        val = eval_projective_constant(key, 50)
+        if val is None:
+            return None
+        return PrecisionReal(val)
+
+
+class ProjectiveRingPoint(Builtin):
+    """
+    <dl>
+      <dt>'ProjectiveRingPoint'[$m$, $\\phi$]
+      <dd>returns the exact rational unit-circle point $\\{x, y\\} \\in S^1(\\mathbb{Q})$
+          on the projective ring $\\mathbb{Z}_{2^m} \\cong \\mathbb{Z}_4^{\\mathrm{Gray}} \\ltimes \\mathbb{Z}_{2^{m-2}}$
+          satisfying $x^2 + y^2 \\equiv 1$ for any bit-depth $m \\ge 3$ and phase $\\phi \\in \\mathbb{Z}$,
+          with scale-invariant embedding under $(m, \\phi) \\mapsto (m+1, 2\\phi)$.
+
+      <dt>'ProjectiveRingPoint'[$m$, $\\phi$, $prop$]
+      <dd>returns the specified invariant: `"UnitCircle"`, `"Character"` ($\\{C_m(\\phi), S_m(\\phi)\\}$),
+          `"PythagoreanTriple"` ($\\{P_x, P_y, P_r\\}$), or `"Wronskian"` ($W_m(\\phi) \\equiv 2^{m-2}$).
+    </dl>
+
+    >> ProjectiveRingPoint[9, 41]
+     = {14703 / 18065, 10496 / 18065}
+
+    >> ProjectiveRingPoint[9, 41, "PythagoreanTriple"]
+     = {14703, 10496, 18065}
+
+    >> ProjectiveRingPoint[9, 41, "Wronskian"]
+     = 128
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "exact projective ring Z_{2^m} -> S^1(Q) unit-circle parameterization, Gray character, and Wronskian"
+
+    def eval_default(self, m: Integer, phi: Integer, evaluation: Evaluation):
+        "ProjectiveRingPoint[m_Integer, phi_Integer]"
+        res = eval_projective_ring_point(m.value, phi.value, "UnitCircle")
+        if res is None:
+            return None
+        return ListExpression(*(from_sympy(el) for el in res))
+
+    def eval_prop(self, m: Integer, phi: Integer, prop, evaluation: Evaluation):
+        "ProjectiveRingPoint[m_Integer, phi_Integer, prop_]"
+        key = ProjectiveConstant._extract_name(prop)
+        if key is None:
+            return None
+        res = eval_projective_ring_point(m.value, phi.value, key)
+        if res is None:
+            return None
+        if isinstance(res, list):
+            return ListExpression(*(from_sympy(el) for el in res))
+        return from_sympy(res)
+
+
+class ProjectiveQuadraticSum(Builtin):
+    """
+    <dl>
+      <dt>'ProjectiveQuadraticSum'[$m$, $n_{\\mathrm{dim}}$]
+      <dd>computes the exact $n_{\\mathrm{dim}}$-dimensional quadratic oscillating sum
+          $\\sum_{\\mathbf{x} \\in (\\mathbb{Z}_{2^m})^{n_{\\mathrm{dim}}}} (C_m(\\|\\mathbf{x}\\|^2) + i S_m(\\|\\mathbf{x}\\|^2))$
+          in $\\mathbb{Z}[i]$ for any bit-depth $m \\ge 3$ and dimension $n_{\\mathrm{dim}} \\ge 1$.
+    </dl>
+
+    >> ProjectiveQuadraticSum[9, 1]
+     = 2048 + 2048 I
+
+    >> ProjectiveQuadraticSum[4, 3]
+     = -512 + 512 I
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "exact N-dimensional quadratic oscillating sum over (Z_{2^m})^N in Z[i]"
+
+    def eval(self, m: Integer, ndim: Integer, evaluation: Evaluation):
+        "ProjectiveQuadraticSum[m_Integer, ndim_Integer]"
+        res = eval_projective_quadratic_sum(m.value, ndim.value)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class ProjectiveContourWinding(Builtin):
+    """
+    <dl>
+      <dt>'ProjectiveContourWinding'[$m$, {$\\phi_1$, $\\phi_2$, ..., $\\phi_k$}]
+      <dd>computes the exact cohomological winding index $-\\sum k_{xy} \\in \\mathbb{Z}$
+          from the Euclidean phase decomposition $d\\phi = 2^m k_{xy} + A_{xy}$ along a closed
+          loop on $\\mathbb{Z}_{2^m}$.
+    </dl>
+
+    >> ProjectiveContourWinding[9, {0, 130, 260, 390}]
+     = 1
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "exact cohomological contour winding index on Z_{2^m}"
+
+    def eval(self, m: Integer, phases: ListExpression, evaluation: Evaluation):
+        "ProjectiveContourWinding[m_Integer, phases_List]"
+        int_phases: list[int] = []
+        for el in phases.elements:
+            if not isinstance(el, Integer):
+                return None
+            int_phases.append(el.value)
+        res = eval_projective_contour_winding(m.value, int_phases)
+        if res is None:
+            return None
+        return Integer(res)
+
+
+class ProjectiveIsotropicStencil(Builtin):
+    """
+    <dl>
+      <dt>'ProjectiveIsotropicStencil'[$d$]
+      <dd>returns the $2d(d-1)$ integer displacement vectors of the $d$-dimensional
+          isotropic orbit $O_2(d) = \\{e \\in \\{-1, 0, 1\\}^d : \\|e\\|^2 = 2\\}$
+          satisfying $\\sum_{e \\in O_2(d)} e_i e_j = 4(d - 1)\\delta_{ij}$ for any $d \\ge 2$.
+    </dl>
+
+    >> Length[ProjectiveIsotropicStencil[3]]
+     = 12
+
+    >> Length[ProjectiveIsotropicStencil[4]]
+     = 24
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "O(d^2) isotropic d-dimensional stencil O_2(d) with second-moment tensor 4(d-1)I_d"
+
+    def eval(self, d: Integer, evaluation: Evaluation):
+        "ProjectiveIsotropicStencil[d_Integer]"
+        vecs = eval_projective_isotropic_stencil(d.value)
+        if vecs is None:
+            return None
+        return ListExpression(
+            *(ListExpression(*(Integer(coord) for coord in v)) for v in vecs)
+        )
+
+
+
+

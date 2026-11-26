@@ -98,6 +98,7 @@ gmp2 = [
 mathics = "mathics.__main__:main"
 mathics3 = "mathics.__main__:main"
 mathics3-codeparser-parse = "mathics.mathics3_code_parse:main"
+mathics3-mcp = "mathics.mcp_server:main"
 
 [tool.codespell]
 # Point to your custom ignore file

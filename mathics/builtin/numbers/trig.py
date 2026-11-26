@@ -29,6 +29,7 @@ from mathics.core.systemsymbols import (
     SymbolCos,
     SymbolSin,
 )
+from mathics.eval.numbers.calculus.projective_integrator import eval_dyadic_pi_cos_sin
 
 
 class Fold:
@@ -633,6 +634,17 @@ class Cos(MPMathFunction):
     summary_text = "cosine function"
     sympy_name = "cos"
 
+    def prepare_mathics(self, sympy_expr):
+        import sympy as sp
+
+        if isinstance(sympy_expr, sp.cos):
+            ratio = sp.simplify(sympy_expr.args[0] / sp.pi)
+            if isinstance(ratio, sp.Rational) and ratio.q >= 16 and (int(ratio.q) & (int(ratio.q) - 1)) == 0:
+                pair = eval_dyadic_pi_cos_sin(int(ratio.p), int(ratio.q))
+                if pair is not None:
+                    return pair[0]
+        return sympy_expr
+
 
 class Cot(MPMathFunction):
     """
@@ -863,6 +875,17 @@ class Sin(MPMathFunction):
     summary_text = "sine function"
     sympy_name = "sin"
 
+    def prepare_mathics(self, sympy_expr):
+        import sympy as sp
+
+        if isinstance(sympy_expr, sp.sin):
+            ratio = sp.simplify(sympy_expr.args[0] / sp.pi)
+            if isinstance(ratio, sp.Rational) and ratio.q >= 16 and (int(ratio.q) & (int(ratio.q) - 1)) == 0:
+                pair = eval_dyadic_pi_cos_sin(int(ratio.p), int(ratio.q))
+                if pair is not None:
+                    return pair[1]
+        return sympy_expr
+
 
 class Tan(MPMathFunction):
     """
@@ -903,3 +926,14 @@ class Tan(MPMathFunction):
 
     summary_text = "tangent function"
     sympy_name = "tan"
+
+    def prepare_mathics(self, sympy_expr):
+        import sympy as sp
+
+        if isinstance(sympy_expr, sp.tan):
+            ratio = sp.simplify(sympy_expr.args[0] / sp.pi)
+            if isinstance(ratio, sp.Rational) and ratio.q >= 16 and (int(ratio.q) & (int(ratio.q) - 1)) == 0:
+                pair = eval_dyadic_pi_cos_sin(int(ratio.p), int(ratio.q))
+                if pair is not None and pair[0] != 0:
+                    return sp.simplify(pair[1] / pair[0])
+        return sympy_expr
