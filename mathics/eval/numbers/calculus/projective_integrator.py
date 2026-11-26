@@ -1037,4 +1037,94 @@ def eval_projective_constant(name: str, digits: int = 50) -> Optional[Decimal]:
     return fn(digits)
 
 
+def projective_gray_butterfly_pair(m: int, phi: int) -> tuple[int, int]:
+    """Branchless Gray-code semidirect butterfly (C_m(phi), S_m(phi)) on Z_{2^m} for any m >= 3."""
+    n_ring = 1 << m
+    half = 1 << (m - 1)
+    q_sq = 1 << (m - 2)
+    u = phi % n_ring
+    q1 = u // half
+    q0 = (u // q_sq) & 1
+    rem = u % q_sq
+    comp = q_sq - rem
+    c_mag = (1 - q0) * comp + q0 * rem
+    s_mag = (1 - q0) * rem + q0 * comp
+    c_neg = (q1 + q0) & 1
+    s_neg = q1
+    return ((1 - 2 * c_neg) * c_mag, (1 - 2 * s_neg) * s_mag)
+
+
+def eval_projective_ring_point(m: int, phi: int, prop: str = "UnitCircle"):
+    """Evaluate exact projective ring invariants on Z_{2^m} -> P^1(Q) for any rank m >= 3."""
+    if m < 3:
+        return None
+    c_val, s_val = projective_gray_butterfly_pair(m, phi)
+    key = prop.strip().lower()
+    if "`" in key:
+        key = key.split("`")[-1]
+    if key in ("character", "char", "cs"):
+        return [sp.Integer(c_val), sp.Integer(s_val)]
+    if key in ("wronskian", "w"):
+        c_next, s_next = projective_gray_butterfly_pair(m, phi + 1)
+        return sp.Integer(c_val * s_next - s_val * c_next)
+
+    q_sq = 1 << (m - 2)
+    q2 = q_sq * q_sq
+    s2 = s_val * s_val
+    c_nonzero = 1 - (1 // (abs(c_val) + 1))
+    c_pos = 1 - (1 // (max(0, c_val) + 1))
+    sgn_c = c_nonzero * (2 * c_pos - 1)
+    px = sgn_c * (q2 - s2)
+    py = 2 * q_sq * s_val
+    pr = q2 + s2
+    if key in ("pythagoreantriple", "triple", "homogeneous"):
+        return [sp.Integer(px), sp.Integer(py), sp.Integer(pr)]
+    if key in ("unitcircle", "circle", "point", "s1"):
+        return [sp.Rational(px, pr), sp.Rational(py, pr)]
+    return None
+
+
+def eval_projective_quadratic_sum(m: int, n_dim: int):
+    """Exact N-dimensional quadratic sum over (Z_{2^m})^n_dim (dl^n_dim) in Z[i] for any m >= 3, n_dim >= 1."""
+    if m < 3 or n_dim < 1:
+        return None
+    exp2 = (m - 2) + n_dim * (m // 2) + (n_dim // 2) * (m & 1)
+    return sp.expand(((1 + sp.I) ** n_dim) * (sp.Integer(1 << exp2)))
+
+
+def eval_projective_contour_winding(m: int, phases: list[int]) -> Optional[int]:
+    """Exact branch-carry cohomological winding index around a closed loop on Z_{2^m}."""
+    if m < 3 or len(phases) < 2:
+        return None
+    n_ring = 1 << m
+    half = 1 << (m - 1)
+    total_k = 0
+    n_pts = len(phases)
+    for idx in range(n_pts):
+        u_x = phases[idx] % n_ring
+        u_y = phases[(idx + 1) % n_pts] % n_ring
+        dphi = u_y - u_x
+        k_xy = (dphi + (half - 1)) // n_ring
+        total_k += k_xy
+    return -total_k
+
+
+def eval_projective_isotropic_stencil(d: int) -> Optional[list[list[int]]]:
+    """O(d^2) isotropic d-dimensional stencil O_2(d) = {e in {-1,0,1}^d : |e|^2 == 2} for any d >= 2."""
+    if d < 2:
+        return None
+    vectors: list[list[int]] = []
+    for i in range(d):
+        for j in range(i + 1, d):
+            for si in (-1, 1):
+                for sj in (-1, 1):
+                    vec = [0] * d
+                    vec[i] = si
+                    vec[j] = sj
+                    vectors.append(vec)
+    vectors.sort()
+    return vectors
+
+
+
 

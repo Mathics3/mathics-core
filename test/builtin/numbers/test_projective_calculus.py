@@ -220,6 +220,62 @@ import pytest
             "True",
             "Non-circular projective Euler-Mascheroni gamma via Brent-McMillan + Log_P(n)",
         ),
+        # 10. ProjectiveRingPoint, ProjectiveQuadraticSum, ProjectiveContourWinding, ProjectiveIsotropicStencil
+        (
+            "ProjectiveRingPoint[9, 41]",
+            "{14703 / 18065, 10496 / 18065}",
+            "ProjectiveRingPoint rational S^1(Q) coordinates at m=9, phi=41",
+        ),
+        (
+            'ProjectiveRingPoint[9, 41, "PythagoreanTriple"]',
+            "{14703, 10496, 18065}",
+            "ProjectiveRingPoint Pythagorean triple at m=9, phi=41",
+        ),
+        (
+            'ProjectiveRingPoint[9, 41, "Character"]',
+            "{87, 41}",
+            "ProjectiveRingPoint Gray-code butterfly character {C_9(41), S_9(41)}",
+        ),
+        (
+            'ProjectiveRingPoint[128, 9876543210123456789, "Wronskian"] == 2^126',
+            "True",
+            "ProjectiveRingPoint Wronskian invariance W_m === 2^(m-2) at m=128",
+        ),
+        (
+            "Total[ProjectiveRingPoint[256, 123456789012345678901234567890]^2] == 1",
+            "True",
+            "ProjectiveRingPoint exact unit circle x^2 + y^2 === 1 at m=256 bits",
+        ),
+        (
+            "ProjectiveRingPoint[33, 2 * 777] == ProjectiveRingPoint[32, 777]",
+            "True",
+            "ProjectiveRingPoint projective limit embedding invariance (m, phi) -> (m+1, 2*phi)",
+        ),
+        (
+            "ProjectiveQuadraticSum[9, 1]",
+            "2048 + 2048 I",
+            "ProjectiveQuadraticSum 1D at m=9",
+        ),
+        (
+            "ProjectiveQuadraticSum[4, 3]",
+            "-512 + 512 I",
+            "ProjectiveQuadraticSum 3D over (Z_16)^3",
+        ),
+        (
+            "ProjectiveQuadraticSum[9, 8]",
+            "140737488355328",
+            "ProjectiveQuadraticSum 8D Bott periodicity at m=9",
+        ),
+        (
+            "ProjectiveContourWinding[16, {0, 16385, 32770, 49155}]",
+            "1",
+            "ProjectiveContourWinding exact winding index on Z_{2^16}",
+        ),
+        (
+            "{Length[ProjectiveIsotropicStencil[3]], Length[ProjectiveIsotropicStencil[5]]}",
+            "{12, 40}",
+            "ProjectiveIsotropicStencil O_2(d) cardinality 2*d*(d-1) for d=3, 5",
+        ),
     ],
 )
 def test_projective_calculus_builtins(

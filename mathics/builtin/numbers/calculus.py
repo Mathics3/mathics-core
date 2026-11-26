@@ -100,7 +100,11 @@ from mathics.eval.numbers.calculus.projective_integrator import (
     eval_laplace_transform_projective,
     eval_pade_approximant,
     eval_projective_constant,
+    eval_projective_contour_winding,
     eval_projective_integrate,
+    eval_projective_isotropic_stencil,
+    eval_projective_quadratic_sum,
+    eval_projective_ring_point,
     eval_residue_projective,
     eval_stieltjes_pade_resolvent,
     eval_trig_expand_projective,
@@ -2995,6 +2999,139 @@ class ProjectiveConstant(Builtin):
         if val is None:
             return None
         return PrecisionReal(val)
+
+
+class ProjectiveRingPoint(Builtin):
+    """
+    <dl>
+      <dt>'ProjectiveRingPoint'[$m$, $\\phi$]
+      <dd>returns the exact rational unit-circle point $\\{x, y\\} \\in S^1(\\mathbb{Q})$
+          on the projective ring $\\mathbb{Z}_{2^m} \\cong \\mathbb{Z}_4^{\\mathrm{Gray}} \\ltimes \\mathbb{Z}_{2^{m-2}}$
+          satisfying $x^2 + y^2 \\equiv 1$ for any bit-depth $m \\ge 3$ and phase $\\phi \\in \\mathbb{Z}$,
+          with scale-invariant embedding under $(m, \\phi) \\mapsto (m+1, 2\\phi)$.
+
+      <dt>'ProjectiveRingPoint'[$m$, $\\phi$, $prop$]
+      <dd>returns the specified invariant: `"UnitCircle"`, `"Character"` ($\\{C_m(\\phi), S_m(\\phi)\\}$),
+          `"PythagoreanTriple"` ($\\{P_x, P_y, P_r\\}$), or `"Wronskian"` ($W_m(\\phi) \\equiv 2^{m-2}$).
+    </dl>
+
+    >> ProjectiveRingPoint[9, 41]
+     = {14703 / 18065, 10496 / 18065}
+
+    >> ProjectiveRingPoint[9, 41, "PythagoreanTriple"]
+     = {14703, 10496, 18065}
+
+    >> ProjectiveRingPoint[9, 41, "Wronskian"]
+     = 128
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "exact projective ring Z_{2^m} -> S^1(Q) unit-circle parameterization, Gray character, and Wronskian"
+
+    def eval_default(self, m: Integer, phi: Integer, evaluation: Evaluation):
+        "ProjectiveRingPoint[m_Integer, phi_Integer]"
+        res = eval_projective_ring_point(m.value, phi.value, "UnitCircle")
+        if res is None:
+            return None
+        return ListExpression(*(from_sympy(el) for el in res))
+
+    def eval_prop(self, m: Integer, phi: Integer, prop, evaluation: Evaluation):
+        "ProjectiveRingPoint[m_Integer, phi_Integer, prop_]"
+        key = ProjectiveConstant._extract_name(prop)
+        if key is None:
+            return None
+        res = eval_projective_ring_point(m.value, phi.value, key)
+        if res is None:
+            return None
+        if isinstance(res, list):
+            return ListExpression(*(from_sympy(el) for el in res))
+        return from_sympy(res)
+
+
+class ProjectiveQuadraticSum(Builtin):
+    """
+    <dl>
+      <dt>'ProjectiveQuadraticSum'[$m$, $n_{\\mathrm{dim}}$]
+      <dd>computes the exact $n_{\\mathrm{dim}}$-dimensional quadratic oscillating sum
+          $\\sum_{\\mathbf{x} \\in (\\mathbb{Z}_{2^m})^{n_{\\mathrm{dim}}}} (C_m(\\|\\mathbf{x}\\|^2) + i S_m(\\|\\mathbf{x}\\|^2))$
+          in $\\mathbb{Z}[i]$ for any bit-depth $m \\ge 3$ and dimension $n_{\\mathrm{dim}} \\ge 1$.
+    </dl>
+
+    >> ProjectiveQuadraticSum[9, 1]
+     = 2048 + 2048 I
+
+    >> ProjectiveQuadraticSum[4, 3]
+     = -512 + 512 I
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "exact N-dimensional quadratic oscillating sum over (Z_{2^m})^N in Z[i]"
+
+    def eval(self, m: Integer, ndim: Integer, evaluation: Evaluation):
+        "ProjectiveQuadraticSum[m_Integer, ndim_Integer]"
+        res = eval_projective_quadratic_sum(m.value, ndim.value)
+        if res is None:
+            return None
+        return from_sympy(res)
+
+
+class ProjectiveContourWinding(Builtin):
+    """
+    <dl>
+      <dt>'ProjectiveContourWinding'[$m$, {$\\phi_1$, $\\phi_2$, ..., $\\phi_k$}]
+      <dd>computes the exact cohomological winding index $-\\sum k_{xy} \\in \\mathbb{Z}$
+          from the Euclidean phase decomposition $d\\phi = 2^m k_{xy} + A_{xy}$ along a closed
+          loop on $\\mathbb{Z}_{2^m}$.
+    </dl>
+
+    >> ProjectiveContourWinding[9, {0, 130, 260, 390}]
+     = 1
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "exact cohomological contour winding index on Z_{2^m}"
+
+    def eval(self, m: Integer, phases: ListExpression, evaluation: Evaluation):
+        "ProjectiveContourWinding[m_Integer, phases_List]"
+        int_phases: list[int] = []
+        for el in phases.elements:
+            if not isinstance(el, Integer):
+                return None
+            int_phases.append(el.value)
+        res = eval_projective_contour_winding(m.value, int_phases)
+        if res is None:
+            return None
+        return Integer(res)
+
+
+class ProjectiveIsotropicStencil(Builtin):
+    """
+    <dl>
+      <dt>'ProjectiveIsotropicStencil'[$d$]
+      <dd>returns the $2d(d-1)$ integer displacement vectors of the $d$-dimensional
+          isotropic orbit $O_2(d) = \\{e \\in \\{-1, 0, 1\\}^d : \\|e\\|^2 = 2\\}$
+          satisfying $\\sum_{e \\in O_2(d)} e_i e_j = 4(d - 1)\\delta_{ij}$ for any $d \\ge 2$.
+    </dl>
+
+    >> Length[ProjectiveIsotropicStencil[3]]
+     = 12
+
+    >> Length[ProjectiveIsotropicStencil[4]]
+     = 24
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "O(d^2) isotropic d-dimensional stencil O_2(d) with second-moment tensor 4(d-1)I_d"
+
+    def eval(self, d: Integer, evaluation: Evaluation):
+        "ProjectiveIsotropicStencil[d_Integer]"
+        vecs = eval_projective_isotropic_stencil(d.value)
+        if vecs is None:
+            return None
+        return ListExpression(
+            *(ListExpression(*(Integer(coord) for coord in v)) for v in vecs)
+        )
+
 
 
 
